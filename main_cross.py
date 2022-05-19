@@ -13,12 +13,16 @@ from config import *
 #import modules
 import numpy as np
 import sys
+import lcrModelAlt_hierarchical_v1
+import lcrModelAlt_hierarchical_v2
+import lcrModelAlt_hierarchical_v3
+import lcrModelAlt_hierarchical_v4
 
 
 # main function
 def main(_):
     loadData = False
-    useOntology = False
+    useOntology = True
     runCABASC = False
     runLCRROT = False
     runLCRROTINVERSE = False
@@ -31,14 +35,14 @@ def main(_):
     else:
         backup = False
 
-    BASE_train = "data/programGeneratedData/crossValidation"+str(FLAGS.year)+'/cross_train_'
-    BASE_val = "data/programGeneratedData/crossValidation"+str(FLAGS.year)+'/cross_val_'
-    BASE_svm_train = "data/programGeneratedData/crossValidation"+str(FLAGS.year)+'/svm/cross_train_svm_'
-    BASE_svm_val = "data/programGeneratedData/crossValidation"+str(FLAGS.year)+'/svm/cross_val_svm_'
+    BASE_train = "C:/Users/Maria/Desktop/data/programGeneratedData/crossValidation"+str(FLAGS.year)+'/cross_train_'
+    BASE_val = "C:/Users/Maria/Desktop/data/programGeneratedData/crossValidation"+str(FLAGS.year)+'/cross_val_'
+    BASE_svm_train = "C:/Users/Maria/Desktop/data/programGeneratedData/crossValidation"+str(FLAGS.year)+'/svm/cross_train_svm_'
+    BASE_svm_val = "C:/Users/Maria/Desktop/data/programGeneratedData/crossValidation"+str(FLAGS.year)+'/svm/cross_val_svm_'
 
 
-    REMAIN_val = "data/programGeneratedData/crossValidation"+str(FLAGS.year)+'/cross_val_remainder_'
-    REMAIN_svm_val = "data/programGeneratedData/crossValidation"+str(FLAGS.year)+'/svm/cross_val_remainder_'
+    REMAIN_val = "C:/Users/Maria/Desktop/data/programGeneratedData/crossValidation"+str(FLAGS.year)+'/cross_val_remainder_'
+    REMAIN_svm_val = "C:/Users/Maria/Desktop/data/programGeneratedData/crossValidation"+str(FLAGS.year)+'/svm/cross_val_remainder_'
 
     # Number of k-fold cross validations
     split_size = 10
@@ -58,7 +62,7 @@ def main(_):
             accuracyOnt, remaining_size = Ontology.run(backup,BASE_val+str(i)+'.txt', runSVM, True, i)
             acc.append(accuracyOnt)
             remaining_size_vec.append(remaining_size)
-        with open("cross_results_"+str(FLAGS.year)+"/ONTOLOGY_"+str(FLAGS.year)+'.txt', 'w') as result:
+        with open("C:/Users/Maria/Desktop/data/programGeneratedData/crossValidation"+str(FLAGS.year)+'/cross_results_"+str(FLAGS.year)+"/ONTOLOGY_"+str(FLAGS.year)+'.txt', 'w') as result:
             print(str(split_size)+'-fold cross validation results')
             print('Accuracy: {}, St Dev:{}'.format(np.mean(np.asarray(acc)), np.std(np.asarray(acc))))
             print(acc)
@@ -74,7 +78,8 @@ def main(_):
         if runSVM == True:
             test = BASE_svm_val
         else:
-            test = BASE_val
+            #test = BASE_val
+            test = REMAIN_val
 
     if runLCRROT == True:
         acc = []
@@ -108,11 +113,11 @@ def main(_):
         acc=[]
         #k-fold cross validation
         for i in range(split_size):
-            acc1, _, _, _, _, _ = lcrModelAlt.main(BASE_train+str(i)+'.txt',test+str(i)+'.txt', accuracyOnt, test_size[i], remaining_size)
+            acc1, _, _, _, _, _ = lcrModelAlt_hierarchical_v3.main(BASE_train+str(i)+'.txt',test+str(i)+'.txt', accuracyOnt, test_size[i], remaining_size)
             acc.append(acc1)
             tf.reset_default_graph()
             print('iteration: '+ str(i))
-        with open("cross_results_"+str(FLAGS.year)+"/LCRROT_ALT_"+str(FLAGS.year)+'.txt', 'w') as result:
+        with open("C:/Users/Maria/Desktop/data/programGeneratedData/crossValidation"+str(FLAGS.year)+'/cross_results_"+str(FLAGS.year)+"/LCRROT_ALT_"+str(FLAGS.year)+'.txt', 'w') as result:
             result.write(str(acc))
             result.write('Accuracy: {}, St Dev:{} /n'.format(np.mean(np.asarray(acc)), np.std(np.asarray(acc))))
             print(str(split_size)+'-fold cross validation results')
