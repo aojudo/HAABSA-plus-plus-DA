@@ -11,8 +11,8 @@ from nltk import *
 from config import *
 
 #path to the java runtime environment
-nltk.internals.config_java('C:/Program Files/Java/jre1.8.0_171/bin/java.exe')
-java_path = 'C:/Program Files/Java/jre1.8.0_171/bin/java.exe'
+nltk.internals.config_java('C:/Program Files/Java/jre1.8.0_241/bin/java.exe')
+java_path = 'C:/Program Files/Java/jre1.8.0_241/bin/java.exe'
 os.environ['JAVAHOME'] = java_path
 
 
