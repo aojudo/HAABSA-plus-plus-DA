@@ -26,10 +26,10 @@ import lcrModelAlt_hierarchical_v4
 
 # main function
 def main(_):
-    loadData         = True        # only for non-contextualised word embeddings.
+    loadData         = False        # only for non-contextualised word embeddings.
                                     #   Use prepareBERT for BERT (and BERT_Large) and prepareELMo for ELMo
-    useOntology      = True         # When run together with runLCRROTALT, the two-step method is used
-    runLCRROTALT     = False
+    useOntology      = False         # When run together with runLCRROTALT, the two-step method is used
+    runLCRROTALT     = True
 
     runSVM           = False
     runCABASC        = False
@@ -40,7 +40,7 @@ def main(_):
     runLCRROTALT_v1     = False
     runLCRROTALT_v2     = False
     runLCRROTALT_v3     = False
-    runLCRROTALT_v4     = True
+    runLCRROTALT_v4     = False
 
     #determine if backupmethod is used
     if runCABASC or runLCRROT or runLCRROTALT or runLCRROTINVERSE or runSVM or runLCRROTALT_v1 or runLCRROTALT_v2 or runLCRROTALT_v3 or runLCRROTALT_v4:

@@ -229,16 +229,16 @@ service
 service was kind of slow , our $T$ took forever to give us our check even though it was n't that busy .
 waitress
 -1
-– eggs , $T$ , potatoes , fresh fruit and yogurt - everything they serve is delicious .
+– eggs , $T$ , potatoes , fresh fruit and yogurt -- everything they serve is delicious .
 pancakes
 1
-– eggs , pancakes , $T$ , fresh fruit and yogurt - everything they serve is delicious .
+– eggs , pancakes , $T$ , fresh fruit and yogurt -- everything they serve is delicious .
 potatoes
 1
-– eggs , pancakes , potatoes , $T$ and yogurt - everything they serve is delicious .
+– eggs , pancakes , potatoes , $T$ and yogurt -- everything they serve is delicious .
 fresh fruit
 1
-– eggs , pancakes , potatoes , fresh fruit and $T$ - everything they serve is delicious .
+– eggs , pancakes , potatoes , fresh fruit and $T$ -- everything they serve is delicious .
 yogurt
 1
 plus , i am allergic to rice , and the $T$ was unbelievably accomodating -- did n't even bat an eye !
@@ -493,7 +493,7 @@ waitress
 the $T$ continually interrupted with `` is there anything else i can do for you ? `` , a strange comment because she had hardly listened , let alone responded to our expression of disappointment at our experience .
 manager
 -1
-you are with a hot date and he / she has an urge for $T$ ... then this might be the place .
+you are with a hot date and he/she has an urge for $T$ ... then this might be the place .
 sushi
 1
 $T$ here !
@@ -634,7 +634,7 @@ menu
 big thick $T$
 pepperoni
 1
-– the $T$ cut real thick - yum .
+– the $T$ cut real thick -- yum .
 pepperoni 's
 1
 the $T$ itself is not exactly the best i 've had ever , but still pretty good .
