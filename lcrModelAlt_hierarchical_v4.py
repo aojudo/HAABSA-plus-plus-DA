@@ -11,10 +11,11 @@ from config import *
 from utils import load_w2v, batch_index, load_inputs_twitter
 import numpy as np
 
+# set seed for reproducibility
 tf.set_random_seed(1)
 
 def lcr_rot(input_fw, input_bw, sen_len_fw, sen_len_bw, target, sen_len_tr, keep_prob1, keep_prob2, l2, _id='all'):
-    print('I am lcr_rot_alt.')
+    print('Hi, I am lcr_rot_hop. How are you?')
     cell = tf.contrib.rnn.LSTMCell
     # left hidden
     input_fw = tf.nn.dropout(input_fw, keep_prob=keep_prob1)
@@ -93,7 +94,7 @@ def lcr_rot(input_fw, input_bw, sen_len_fw, sen_len_bw, target, sen_len_tr, keep
 
 def main(train_path, test_path, accuracyOnt, test_size, remaining_size, learning_rate=0.09, keep_prob=0.3, momentum=0.85, l2=0.00001):
     print_config()
-    with tf.device('/gpu:1'):
+    with tf.device('/GPU:0'):
         word_id_mapping, w2v = load_w2v(FLAGS.embedding_path, FLAGS.embedding_dim)
         word_embedding = tf.constant(w2v, name='word_embedding')
 
