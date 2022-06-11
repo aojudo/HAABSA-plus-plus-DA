@@ -1,4 +1,4 @@
-/data/external_data/*
+data/external_data/
 data/program_generated_data/*
 __pycache__
 cross_results_2015/*
