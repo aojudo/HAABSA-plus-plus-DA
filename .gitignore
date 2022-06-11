@@ -1,6 +1,6 @@
 data/external_data/*
 data/program_generated_data/*
-__pycache__/
+__pycache__
 cross_results_2015/*
 cross_results_2016/*
 hyper_results/*
