@@ -5,7 +5,7 @@ data/*
 # include external_data folder
 !data/external_data/
 data/external_data/**
-!data/external_data/README.txt
+!data/external_data/README.md
 
 
 # preserve program_generated_data directory structure
@@ -14,17 +14,17 @@ data/program_generated_data/**
 
 !data/program_generated_data/bert_embeddings/
 data/program_generated_data/bert_embeddings/**
-!data/program_generated_data/bert_embeddings/README.txt
+!data/program_generated_data/bert_embeddings/README.md
 
 !data/program_generated_data/raw_data/
 data/program_generated_data/raw_data/**
-!data/program_generated_data/raw_data/README.txt
+!data/program_generated_data/raw_data/README.md
 
 !data/program_generated_data/temp/
 data/program_generated_data/temp/**
 !data/program_generated_data/temp/bert/
 data/program_generated_data/temp/bert/**
-!data/program_generated_data/temp/bert/README.txt
+!data/program_generated_data/temp/bert/README.md
 
 
 # ignore all other program generated data
