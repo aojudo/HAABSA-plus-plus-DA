@@ -3,6 +3,9 @@ data/external_data/*
 
 # ignore all program generated data
 data/program_generated_data/*
+!data/program_generated_data/bert_embeddings/*
+!data/program_generated_data/raw_data/*
+
 cross_results_2015/*
 cross_results_2016/*
 hyper_results/*
