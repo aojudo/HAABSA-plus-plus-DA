@@ -1,18 +1,22 @@
+# ignore data
 data/*
 
+# make sure external_data folder is included
 !data/external_data/
 data/external_data/**
 !data/external_data/README.txt
 
+!data/program_generated_data/
+data/program_generated_data/**
+!data/program_generated_data/bert_embeddings/README.txt
+!data/program_generated_data/raw_data/README.txt
+!data/program_generated_data/temp/bert/README.txt
 
-
-# ignore all external data
-# data/external_data/*
 
 # ignore all program generated data
-data/program_generated_data/*
-data/program_generated_data/bert_embeddings/*
-data/program_generated_data/raw_data/*
+#data/program_generated_data/*
+#data/program_generated_data/bert_embeddings/*
+#data/program_generated_data/raw_data/*
 
 cross_results_2015/*
 cross_results_2016/*
@@ -24,8 +28,7 @@ summary/*
 __pycache__
 
 # keep directory structure
-# !data/external_data/README.txts
-!data/program_generated_data/README.txt
-!data/program_generated_data/bert_embeddings/README.txt
-!data/program_generated_data/raw_data/README.txt
-!data/program_generated_data/temp/bert/README.txt
+#!data/program_generated_data/README.txt
+#!data/program_generated_data/bert_embeddings/README.txt
+#!data/program_generated_data/raw_data/README.txt
+#!data/program_generated_data/temp/bert/README.txt
