@@ -1,5 +1,13 @@
+data/*
+
+!data/external_data/
+data/external_data/**
+!data/external_data/README.txt
+
+
+
 # ignore all external data
-data/external_data/*
+# data/external_data/*
 
 # ignore all program generated data
 data/program_generated_data/*
@@ -16,7 +24,7 @@ summary/*
 __pycache__
 
 # keep directory structure
-!data/external_data/README.txts
+# !data/external_data/README.txts
 !data/program_generated_data/README.txt
 !data/program_generated_data/bert_embeddings/README.txt
 !data/program_generated_data/raw_data/README.txt
