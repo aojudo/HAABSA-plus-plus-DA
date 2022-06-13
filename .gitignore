@@ -14,6 +14,7 @@ __pycache__
 
 # keep directory structure
 !data/external_data/README.txt
+!data/program_generated_data/README.txt
 !data/program_generated_data/bert_embeddings/README.txt
 !data/program_generated_data/raw_data/README.txt
 !data/program_generated_data/temp/bert/README.txt
