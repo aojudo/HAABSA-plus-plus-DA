@@ -7,6 +7,7 @@ def loadDataAndEmbeddings(config,loadData):
 
     FLAGS = config
 
+################################ should not be necessary
     if loadData == True:
         source_count, target_count = [], []
         source_word2idx, target_phrase2idx = {}, {}
@@ -19,7 +20,7 @@ def loadDataAndEmbeddings(config,loadData):
         wt = np.random.normal(0, 0.05, [len(source_word2idx), 300])
         word_embed = {}
         count = 0.0
-        with open(FLAGS.pretrain_file, 'r',encoding="utf8") as f:
+        with open(FLAGS.pretrain_file, 'r',encoding='utf8') as f:
             for line in f:
                 content = line.strip().split()
                 if content[0] in source_word2idx:
@@ -29,16 +30,17 @@ def loadDataAndEmbeddings(config,loadData):
         print('finished embedding context vectors...')
 
         #print data to txt file
-        outF= open(FLAGS.embedding_path, "w")
+        outF= open(FLAGS.embedding_path, 'w')
         for i, word in enumerate(source_word2idx):
             outF.write(word)
-            outF.write(" ")
+            outF.write(' ')
             outF.write(' '.join(str(w) for w in wt[i]))
-            outF.write("\n")
+            outF.write('\n')
         outF.close()
         print((len(source_word2idx)-count)/len(source_word2idx)*100)
         
         return train_data[0], test_data[0], train_data[4], test_data[4]
+############################### end
 
     else:
         #get statistic properties from txt file
@@ -59,11 +61,13 @@ def loadAverageSentence(config,sentences,pre_trained_context):
 
 def getStatsFromFile(path):
     polarity_vector= []
-    with open(path, "r") as fd:
+    with open(path, 'r') as fd:
         lines = fd.read().splitlines()
         size = len(lines)/3
+        print('size equals: '+str(size))
         for i in range(0, len(lines), 3):
             #polarity
+            print('line '+str(i)+' contains word(s) '+str(lines[i+1]))
             polarity_vector.append(lines[i + 2].strip().split()[0])
     return size, polarity_vector
 
@@ -71,7 +75,7 @@ def loadHyperData (config,loadData,percentage=0.8):
     FLAGS = config
 
     if loadData:
-        """Splits a file in 2 given the `percentage` to go in the large file."""
+        '''Splits a file in 2 given the `percentage` to go in the large file.'''
         random.seed(12345)
         with open(FLAGS.train_path, 'r') as fin, \
         open(FLAGS.hyper_train_path, 'w') as foutBig, \
@@ -135,10 +139,10 @@ def loadCrossValidation (config, split_size, load=True):
                 words_2 = words[val_idx]
                 svmwords_1 = svmwords[train_idx]
                 svmwords_2 = svmwords[val_idx]
-                with open("data/programGeneratedData/crossValidation"+str(FLAGS.year)+'/cross_train_'+ str(i) +'.txt', 'w') as train, \
-                open("data/programGeneratedData/crossValidation"+str(FLAGS.year)+'/cross_val_'+ str(i) +'.txt', 'w') as val, \
-                open("data/programGeneratedData/crossValidation"+str(FLAGS.year)+'/svm/cross_train_svm_'+ str(i) +'.txt', 'w') as svmtrain, \
-                open("data/programGeneratedData/crossValidation"+str(FLAGS.year)+'/svm/cross_val_svm_'+ str(i) +'.txt', 'w') as svmval:
+                with open('data/programGeneratedData/crossValidation'+str(FLAGS.year)+'/cross_train_'+ str(i) +'.txt', 'w') as train, \
+                open('data/programGeneratedData/crossValidation'+str(FLAGS.year)+'/cross_val_'+ str(i) +'.txt', 'w') as val, \
+                open('data/programGeneratedData/crossValidation'+str(FLAGS.year)+'/svm/cross_train_svm_'+ str(i) +'.txt', 'w') as svmtrain, \
+                open('data/programGeneratedData/crossValidation'+str(FLAGS.year)+'/svm/cross_val_svm_'+ str(i) +'.txt', 'w') as svmval:
                     for row in words_1:
                         train.write(row[0])
                         train.write(row[1])
@@ -159,10 +163,10 @@ def loadCrossValidation (config, split_size, load=True):
                         svmval.write(row[3])
                 i += 1
         #get statistic properties from txt file
-    train_size, train_polarity_vector = getStatsFromFile("data/programGeneratedData/crossValidation"+str(FLAGS.year)+'/cross_train_0.txt')
+    train_size, train_polarity_vector = getStatsFromFile('data/programGeneratedData/crossValidation'+str(FLAGS.year)+'/cross_train_0.txt')
     test_size, test_polarity_vector = [], []
     for i in range(split_size):
-        test_size_i, test_polarity_vector_i = getStatsFromFile("data/programGeneratedData/crossValidation"+str(FLAGS.year)+'/cross_val_'+str(i)+'.txt')
+        test_size_i, test_polarity_vector_i = getStatsFromFile('data/programGeneratedData/crossValidation'+str(FLAGS.year)+'/cross_val_'+str(i)+'.txt')
         test_size.append(test_size_i)
         test_polarity_vector.append(test_polarity_vector_i)
 

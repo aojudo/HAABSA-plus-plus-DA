@@ -230,15 +230,19 @@ if FLAGS.year==2015 or FLAGS.year==2016:
         train_aspects = 1279
     elif FLAGS.year==2016:
         train_aspects = 1880
+    
+    # number of lines equals 3*(#aspects)
+    train_lines = 3 * train_aspects
+    
     # split in train and test file
     lines_all_data = open(FLAGS.temp_bert_dir + str(FLAGS.year) + '_BERT_Data_All.txt').readlines()
     with open('data/program_generated_data/'+str(FLAGS.embedding_dim) +'traindata'+str(FLAGS.year) +'BERT.txt','w') as out_train:
-        for j in range(0, train_aspects):
+        for j in range(0, train_lines):
             out_train.write(lines_all_data[j])
     print ('Succesfully created BERT train file at data/program_generated_data/'+str(FLAGS.embedding_dim) +'traindata'+str(FLAGS.year) +'BERT.txt')
         
     with open('data/program_generated_data/'+str(FLAGS.embedding_dim) +'testdata'+str(FLAGS.year) +'BERT.txt','w') as out_test:
-        for k in range(train_aspects, len(lines_all_data)):
+        for k in range(train_lines, len(lines_all_data)):
             out_test.write(lines_all_data[k])
     print ('Succesfully created BERT test file at data/program_generated_data/'+str(FLAGS.embedding_dim) +'testdata'+str(FLAGS.year) +'BERT.txt')    
 else:

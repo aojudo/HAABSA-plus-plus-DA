@@ -8,7 +8,7 @@ FLAGS = tf.app.flags.FLAGS
 
 
 # general variables
-tf.app.flags.DEFINE_string('embedding_type','BERT','can be: glove, word2vec-cbow, word2vec-SG, fasttext, BERT, BERT_Large, ELMo')
+tf.app.flags.DEFINE_string('embedding_type','BERT','type of embedding used. (OLD: can be: glove, word2vec-cbow, word2vec-SG, fasttext, BERT, BERT_Large, ELMo)')
 tf.app.flags.DEFINE_integer('year', 2015, 'possible dataset years [2015, 2016]')
 tf.app.flags.DEFINE_integer('embedding_dim', 768, 'dimension of word embedding')
 tf.app.flags.DEFINE_integer('batch_size', 20, 'number of example per batch')
@@ -29,14 +29,6 @@ tf.app.flags.DEFINE_integer('n_layer', 3, 'number of stacked rnn')
 tf.app.flags.DEFINE_string('is_r', '1', 'prob')
 tf.app.flags.DEFINE_integer('max_target_len', 19, 'max target length')
 
-# traindata, testdata and embeddings, train path aangepast met ELMo
-##tf.app.flags.DEFINE_string('train_path_ont', 'data/program_generated_data/GloVetraindata'+str(FLAGS.year)+'.txt', 'train data path for ont')
-##tf.app.flags.DEFINE_string('test_path_ont', 'data/program_generated_data/GloVetestdata'+str(FLAGS.year)+'.txt', 'formatted test data path')
-tf.app.flags.DEFINE_string('train_path', 'data/program_generated_data/'+str(FLAGS.embedding_dim)+'traindata'+str(FLAGS.year)+str(FLAGS.embedding_type)+'.txt', 'train data path')
-tf.app.flags.DEFINE_string('test_path', 'data/program_generated_data/' + str(FLAGS.embedding_dim)+'testdata'+str(FLAGS.year)+str(FLAGS.embedding_type)+'.txt', 'test data path')
-tf.app.flags.DEFINE_string('embedding_path', 'data/program_generated_data/' + str(FLAGS.embedding_type) + str(FLAGS.embedding_dim)+'embedding'+str(FLAGS.year)+'.txt', 'pre-trained glove vectors file path')
-tf.app.flags.DEFINE_string('remaining_test_path_ELMo', 'data/program_generated_data/'+str(FLAGS.embedding_dim)+'remainingtestdata'+str(FLAGS.year)+'ELMo.txt', 'only for printing')
-tf.app.flags.DEFINE_string('remaining_test_path', 'data/program_generated_data/'+str(FLAGS.embedding_dim)+'remainingtestdata'+str(FLAGS.year)+'.txt', 'formatted remaining test data path after ontology')
 
 # NEWLY CREATED BY ARTHUR
 tf.app.flags.DEFINE_string('raw_data_file', 'data/program_generated_data/raw_data/raw_data'+str(FLAGS.year)+'.txt', 'raw data file for retrieving BERT embeddings')
@@ -44,6 +36,38 @@ tf.app.flags.DEFINE_string('raw_data_dir', 'data/program_generated_data/raw_data
 tf.app.flags.DEFINE_string('bert_embedding_path', 'data/program_generated_data/bert_embeddings/bert_base_restaurant_'+str(FLAGS.year)+'.txt', 'path to BERT embeddings file')
 tf.app.flags.DEFINE_string('bert_pretrained_path', 'data/external_data/uncased_L-12_H-768_A-12', 'path to pretrained BERT model')
 tf.app.flags.DEFINE_string('temp_bert_dir', 'data/program_generated_data/temp/bert/', 'directory for temporary BERT files')
+tf.app.flags.DEFINE_string('gpu_id', '0', 'id of the gpu use for running the models used bu tensorflow')
+tf.app.flags.DEFINE_string('java_path', 'C:/Program Files/Java/jre1.8.0_241/bin/java.exe', 'path to java runtime environment')
+
+
+# FOUND IN THE CODE AND DOCUMENTED IN WORD FILE (notes.docx)
+tf.app.flags.DEFINE_string('embedding_path', 'data/program_generated_data/'+str(FLAGS.embedding_type)+'_'+str(FLAGS.year)+'_'+str(FLAGS.embedding_dim)+'.txt', 'word embeddings from BERT') # two options, think this is this one, otherwise result from prepare_bert
+tf.app.flags.DEFINE_string('train_path', 'data/program_generated_data/'+str(FLAGS.embedding_dim)+'traindata'+str(FLAGS.year)+str(FLAGS.embedding_type)+'.txt', 'train data path')
+tf.app.flags.DEFINE_string('test_path', 'data/program_generated_data/' + str(FLAGS.embedding_dim)+'testdata'+str(FLAGS.year)+str(FLAGS.embedding_type)+'.txt', 'test data path')
+tf.app.flags.DEFINE_string('remaining_test_path', 'data/program_generated_data/'+str(FLAGS.embedding_dim)+'remainingtestdata'+str(FLAGS.year)+'.txt', 'formatted remaining test data path after ontology')
+
+# OTHER USEFUL FLAGS FROM THIS FILE
+tf.app.flags.DEFINE_string('train_data', 'data/external_data/restaurant_train_'+str(FLAGS.year)+'.xml', 'train data path')
+tf.app.flags.DEFINE_string('test_data', 'data/external_data/restaurant_test_'+str(FLAGS.year)+'.xml', 'test data path')
+tf.app.flags.DEFINE_string('method', 'AE', 'model type: AE, AT or AEAT')
+tf.app.flags.DEFINE_string('prob_file', 'prob1.txt', 'prob')
+tf.app.flags.DEFINE_string('saver_file', 'prob1.txt', 'prob')
+
+
+#######################################################################################  OLD
+
+
+# traindata, testdata and embeddings, train path aangepast met ELMo
+##tf.app.flags.DEFINE_string('train_path_ont', 'data/program_generated_data/GloVetraindata'+str(FLAGS.year)+'.txt', 'train data path for ont')
+##tf.app.flags.DEFINE_string('test_path_ont', 'data/program_generated_data/GloVetestdata'+str(FLAGS.year)+'.txt', 'formatted test data path')
+
+# tf.app.flags.DEFINE_string('train_path', 'data/program_generated_data/'+str(FLAGS.embedding_dim)+'traindata'+str(FLAGS.year)+str(FLAGS.embedding_type)+'.txt', 'train data path')
+# tf.app.flags.DEFINE_string('test_path', 'data/program_generated_data/' + str(FLAGS.embedding_dim)+'testdata'+str(FLAGS.year)+str(FLAGS.embedding_type)+'.txt', 'test data path')
+# tf.app.flags.DEFINE_string('embedding_path', 'data/program_generated_data/' + str(FLAGS.embedding_type) + str(FLAGS.embedding_dim)+'embedding'+str(FLAGS.year)+'.txt', 'pre-trained glove vectors file path')
+# tf.app.flags.DEFINE_string('remaining_test_path_ELMo', 'data/program_generated_data/'+str(FLAGS.embedding_dim)+'remainingtestdata'+str(FLAGS.year)+'ELMo.txt', 'only for printing')
+# tf.app.flags.DEFINE_string('remaining_test_path', 'data/program_generated_data/'+str(FLAGS.embedding_dim)+'remainingtestdata'+str(FLAGS.year)+'.txt', 'formatted remaining test data path after ontology')
+
+
 
 #svm traindata, svm testdata
 ##tf.app.flags.DEFINE_string('train_svm_path', 'data/program_generated_data/'+str(FLAGS.embedding_dim)+'trainsvmdata'+str(FLAGS.year)+'.txt', 'train data path')
@@ -51,8 +75,8 @@ tf.app.flags.DEFINE_string('temp_bert_dir', 'data/program_generated_data/temp/be
 ##tf.app.flags.DEFINE_string('remaining_svm_test_path', 'data/program_generated_data/'+str(FLAGS.embedding_dim)+'remainingsvmtestdata'+str(FLAGS.year)+'.txt', 'formatted remaining test data path after ontology')
 
 # hyper traindata, hyper testdata
-tf.app.flags.DEFINE_string('hyper_train_path', 'data/program_generated_data/'+str(FLAGS.embedding_dim)+'hypertraindata'+str(FLAGS.year)+'.txt', 'hyper train data path')
-tf.app.flags.DEFINE_string('hyper_eval_path', 'data/program_generated_data/'+str(FLAGS.embedding_dim)+'hyperevaldata'+str(FLAGS.year)+'.txt', 'hyper eval data path')
+##tf.app.flags.DEFINE_string('hyper_train_path', 'data/program_generated_data/'+str(FLAGS.embedding_dim)+'hypertraindata'+str(FLAGS.year)+'.txt', 'hyper train data path')
+##tf.app.flags.DEFINE_string('hyper_eval_path', 'data/program_generated_data/'+str(FLAGS.embedding_dim)+'hyperevaldata'+str(FLAGS.year)+'.txt', 'hyper eval data path')
 ##tf.app.flags.DEFINE_string('hyper_svm_train_path', 'data/program_generated_data/'+str(FLAGS.embedding_dim)+'hypertrainsvmdata'+str(FLAGS.year)+'.txt', 'hyper train svm data path')
 ##tf.app.flags.DEFINE_string('hyper_svm_eval_path', 'data/program_generated_data/'+str(FLAGS.embedding_dim)+'hyperevalsvmdata'+str(FLAGS.year)+'.txt', 'hyper eval svm data path')
 
@@ -60,11 +84,14 @@ tf.app.flags.DEFINE_string('hyper_eval_path', 'data/program_generated_data/'+str
 ##tf.app.flags.DEFINE_string('pretrain_file', 'data/external_data/'+str(FLAGS.embedding_type)+'.'+str(FLAGS.embedding_dim)+'d.txt', 'pre-trained embedding vectors for non BERT and ELMo')
 
 # external data sources
-tf.app.flags.DEFINE_string('train_data', 'data/external_data/restaurant_train_'+str(FLAGS.year)+'.xml', 'train data path')
-tf.app.flags.DEFINE_string('test_data', 'data/external_data/restaurant_test_'+str(FLAGS.year)+'.xml', 'test data path')
-tf.app.flags.DEFINE_string('method', 'AE', 'model type: AE, AT or AEAT')
-tf.app.flags.DEFINE_string('prob_file', 'prob1.txt', 'prob')
-tf.app.flags.DEFINE_string('saver_file', 'prob1.txt', 'prob')
+# tf.app.flags.DEFINE_string('train_data', 'data/external_data/restaurant_train_'+str(FLAGS.year)+'.xml', 'train data path')
+# tf.app.flags.DEFINE_string('test_data', 'data/external_data/restaurant_test_'+str(FLAGS.year)+'.xml', 'test data path')
+# tf.app.flags.DEFINE_string('method', 'AE', 'model type: AE, AT or AEAT')
+# tf.app.flags.DEFINE_string('prob_file', 'prob1.txt', 'prob')
+# tf.app.flags.DEFINE_string('saver_file', 'prob1.txt', 'prob')
+
+
+#######################################################################################  END OLD
 
 
 def print_config():

@@ -43,7 +43,7 @@ INIT_CHECKPOINT = FLAGS.bert_pretrained_path + '/bert_model.ckpt'
 BATCH_SIZE = 128
 
 # define the gpu to use
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ['CUDA_VISIBLE_DEVICES'] = FLAGS.gpu_id
 
 #disable printing of logs during running, remove for debugging
 tf.logging.set_verbosity(tf.logging.ERROR)

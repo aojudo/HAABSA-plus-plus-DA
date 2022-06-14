@@ -120,7 +120,7 @@ def read_xml(in_file, source_count, source_word2idx, target_count, target_phrase
             max_sent_len = len(sptoks)
         for opinions in sentence.iter('Opinions'):
             for opinion in opinions.findall('Opinion'):
-                if opinion.get("polarity") == "conflict":
+                if opinion.get('polarity') == 'conflict':
                     count_confl += 1
                     continue
                 asp = opinion.get('target')
@@ -158,7 +158,7 @@ def read_xml(in_file, source_count, source_word2idx, target_count, target_phrase
                 idx.append(source_word2idx[''.join(sptok).lower()])
             for opinions in sentence.iter('Opinions'):
                 for opinion in opinions.findall('Opinion'):
-                    if opinion.get("polarity") == "conflict": continue
+                    if opinion.get('polarity') == 'conflict': continue
                     asp = opinion.get('target')
                     if asp != 'NULL': #removes implicit targets
                         aspNew = re.sub(' +', ' ', asp)
@@ -168,9 +168,9 @@ def read_xml(in_file, source_count, source_word2idx, target_count, target_phrase
                         outputtarget = ' '.join(sp for sp in t_sptoks).lower()
                         outputtext = outputtext.replace(outputtarget, '$T$')
                         out_f.write(outputtext)
-                        out_f.write("\n")
+                        out_f.write('\n')
                         out_f.write(outputtarget)
-                        out_f.write("\n")
+                        out_f.write('\n')
                         pos_info, lab = _get_data_tuple(sptoks, t_sptoks, opinion.get('polarity'))
                         pos_info = [(1-(i / len(idx))) for i in pos_info]
                         source_loc_data.append(pos_info)
@@ -178,7 +178,7 @@ def read_xml(in_file, source_count, source_word2idx, target_count, target_phrase
                         target_data.append(target_phrase2idx[targetdata])
                         target_label.append(lab)
                         out_f.write(str(lab))
-                        out_f.write("\n")
+                        out_f.write('\n')
     
     out_f.close()
     print('Read %s aspects from %s' % (len(source_data), in_file))
@@ -226,3 +226,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+    

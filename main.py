@@ -27,8 +27,8 @@ import lcrModelAlt_hierarchical_v4
 # main function
 def main(_):
     loadData         = False        # only for non-contextualised word embeddings.
-                                    #   Use prepareBERT for BERT (and BERT_Large) and prepareELMo for ELMo
-    useOntology      = False         # When run together with runLCRROTALT, the two-step method is used
+                                    # Use prepareBERT for BERT (and BERT_Large) and prepareELMo for ELMo
+    useOntology      = False        # When run together with runLCRROTALT, the two-step method is used
     runLCRROTALT     = False
 
     runSVM           = False
@@ -42,7 +42,7 @@ def main(_):
     runLCRROTALT_v3     = False
     runLCRROTALT_v4     = True
 
-    #determine if backupmethod is used
+    # determine if backupmethod is used
     if runCABASC or runLCRROT or runLCRROTALT or runLCRROTINVERSE or runSVM or runLCRROTALT_v1 or runLCRROTALT_v2 or runLCRROTALT_v3 or runLCRROTALT_v4:
         backup = True
     else:
@@ -59,7 +59,7 @@ def main(_):
         print('Starting Ontology Reasoner')
         #in sample accuracy
         Ontology = OntReasoner()
-        accuracyOnt, remaining_size = Ontology.run(backup,FLAGS.test_path_ont, runSVM)
+        accuracyOnt, remaining_size = Ontology.run(backup,FLAGS.test_path, runSVM)
         #out of sample accuracy
         #Ontology = OntReasoner()      
         #accuracyInSampleOnt, remainingInSample_size = Ontology.run(backup,FLAGS.train_path_ont, runSVM)        
@@ -97,8 +97,7 @@ def main(_):
        # tf.reset_default_graph()
 
     if runLCRROTALT_v4 == True:
-       _, pred2, fw2, bw2, tl2, tr2 = lcrModelAlt_hierarchical_v4.main(FLAGS.train_path, test, accuracyOnt, test_size,
-                                                        remaining_size)
+       _, pred2, fw2, bw2, tl2, tr2 = lcrModelAlt_hierarchical_v4.main(FLAGS.train_path, test, accuracyOnt, test_size, remaining_size)
        tf.reset_default_graph()
 
 '''
@@ -116,7 +115,7 @@ def main(_):
     if runCABASC == True:
         _, pred3, weights = cabascModel.main(FLAGS.train_path,test, accuracyOnt, test_size, remaining_size)
         if weightanalysis and runLCRROT and runLCRROTALT:
-            outF= open('sentence_analysis.txt', "w")
+            outF= open('sentence_analysis.txt', 'w')
             dif = np.subtract(pred3, pred1)
             for i, value in enumerate(pred3):
                 if value == 1 and pred2[i] == 0:
@@ -132,41 +131,41 @@ def main(_):
                             sentright.append(word)
                     print(i)
                     outF.write(str(i))
-                    outF.write("\n")
+                    outF.write('\n')
                     outF.write('lcr pred: {}; CABASC pred: {}; lcralt pred: {}; true: {}'.format(pred1[i], pred3[i], pred2[i], true[i]))
-                    outF.write("\n")
-                    outF.write(";".join(sentleft))
-                    outF.write("\n")
-                    outF.write(";".join(str(x) for x in fw1[i][0]))
-                    outF.write("\n")
-                    outF.write(";".join(sentright))
-                    outF.write("\n")
-                    outF.write(";".join(str(x) for x in bw1[i][0]))
-                    outF.write("\n")
-                    outF.write(";".join(target[i]))
-                    outF.write("\n")
-                    outF.write(";".join(str(x) for x in tl1[i][0]))
-                    outF.write("\n")
-                    outF.write(";".join(str(x) for x in tr1[i][0]))
-                    outF.write("\n")
-                    outF.write(";".join(sentleft))
-                    outF.write("\n")
-                    outF.write(";".join(str(x) for x in fw2[i][0]))
-                    outF.write("\n")
-                    outF.write(";".join(sentright))
-                    outF.write("\n")
-                    outF.write(";".join(str(x) for x in bw2[i][0]))
-                    outF.write("\n")
-                    outF.write(";".join(target[i]))
-                    outF.write("\n")
-                    outF.write(";".join(str(x) for x in tl2[i][0]))
-                    outF.write("\n")
-                    outF.write(";".join(str(x) for x in tr2[i][0]))
-                    outF.write("\n")
-                    outF.write(";".join(sent[i]))
-                    outF.write("\n")
-                    outF.write(";".join(str(x) for x in weights[i][0]))
-                    outF.write("\n")
+                    outF.write('\n')
+                    outF.write(';'.join(sentleft))
+                    outF.write('\n')
+                    outF.write(';'.join(str(x) for x in fw1[i][0]))
+                    outF.write('\n')
+                    outF.write(';'.join(sentright))
+                    outF.write('\n')
+                    outF.write(';'.join(str(x) for x in bw1[i][0]))
+                    outF.write('\n')
+                    outF.write(';'.join(target[i]))
+                    outF.write('\n')
+                    outF.write(';'.join(str(x) for x in tl1[i][0]))
+                    outF.write('\n')
+                    outF.write(';'.join(str(x) for x in tr1[i][0]))
+                    outF.write('\n')
+                    outF.write(';'.join(sentleft))
+                    outF.write('\n')
+                    outF.write(';'.join(str(x) for x in fw2[i][0]))
+                    outF.write('\n')
+                    outF.write(';'.join(sentright))
+                    outF.write('\n')
+                    outF.write(';'.join(str(x) for x in bw2[i][0]))
+                    outF.write('\n')
+                    outF.write(';'.join(target[i]))
+                    outF.write('\n')
+                    outF.write(';'.join(str(x) for x in tl2[i][0]))
+                    outF.write('\n')
+                    outF.write(';'.join(str(x) for x in tr2[i][0]))
+                    outF.write('\n')
+                    outF.write(';'.join(sent[i]))
+                    outF.write('\n')
+                    outF.write(';'.join(str(x) for x in weights[i][0]))
+                    outF.write('\n')
             outF.close()
 
     # BoW model

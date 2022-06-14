@@ -10,16 +10,16 @@ from nltk.parse.stanford import StanfordDependencyParser
 from nltk import *
 from config import *
 
-#path to the java runtime environment
-nltk.internals.config_java('C:/Program Files/Java/jre1.8.0_241/bin/java.exe')
-java_path = 'C:/Program Files/Java/jre1.8.0_241/bin/java.exe'
+# path to the java runtime environment
+java_path = FLAGS.java_path
+nltk.internals.config_java(java_path)
 os.environ['JAVAHOME'] = java_path
 
 
 class OntReasoner():
     def __init__(self):
-        onto_path.append("data/externalData")  # Path to ontology
-        self.onto = get_ontology("ontology.owl")  # Name of ontology
+        onto_path.append('data/externalData')  # Path to ontology
+        self.onto = get_ontology('ontology.owl')  # Name of ontology
         self.onto = self.onto.load()
         self.timeStart = time.time()
         self.classes = set(self.onto.classes())
@@ -157,14 +157,14 @@ class OntReasoner():
         if index < 3:
             for i in range(index):
                 temp = words_in_sentence[i]
-                if "not" in temp or "n't" in temp or "never" in temp:
+                if 'not' in temp or 'n\'t' in temp or 'never' in temp:
                     negated = True
         else:
             for i in range(index - 3, index):
                 temp = words_in_sentence[i]
-                if "not" in temp or "n't" in temp or "never" in temp:
+                if 'not' in temp or 'n\'t' in temp or 'never' in temp:
                     negated = True
-        negations = ["not", "n,t", "never"]
+        negations = ['not', 'n,t', 'never']
         if negated == False and any(x in s for x in negations for s in words_in_sentence):
             print('negation parser')
             print(' '.join(words_in_sentence))
@@ -210,14 +210,14 @@ class OntReasoner():
         target_mentions = []
         for target_an in target_ancestors:
             name = target_an.__name__
-            if "Mention" in name:
+            if 'Mention' in name:
                 target_mentions.append(name.rsplit('Mention', 1)[0])
 
         onto_ancestors = onto_class.ancestors()
         onto_mentions = []
         for onto_an in onto_ancestors:
             name = onto_an.__name__
-            if "Mention" in name:
+            if 'Mention' in name:
                 onto_mentions.append(name.rsplit('Mention', 1)[0])
 
         common_list = list(set(target_mentions).intersection(set(onto_mentions)))
@@ -236,7 +236,7 @@ class OntReasoner():
 
     def get_related_aspect_mentions(self, onto_class):
         ancestors = onto_class.ancestors()
-        all_mention = self.onto.search(iri="*Mention")
+        all_mention = self.onto.search(iri='*Mention')
         related_aspect_mentions = []
         for an in ancestors:
             an_name = an.__name__
@@ -267,7 +267,7 @@ class OntReasoner():
 
         for c in classes:
             name_class = c.__name__
-            remove_words = ['Property', "Mention", "Positive", "Neutral", "Negative"]
+            remove_words = ['Property', 'Mention', 'Positive', 'Neutral', 'Negative']
             if any(word in name_class for word in remove_words):
                 continue
             ancestors = c.ancestors()
@@ -280,13 +280,13 @@ class OntReasoner():
 
             for name_ancestor in ancestors_list:
                 if boolean == 1:
-                    if "Generic" in name_ancestor:
+                    if 'Generic' in name_ancestor:
                         types1.add(name_class.lower())
                         boolean = 0
-                    elif "Positive" in name_ancestor or "Negative" in name_ancestor:
+                    elif 'Positive' in name_ancestor or 'Negative' in name_ancestor:
                         types2.add(name_class.lower())
                         boolean = 0
-                    elif "PropertyMention" in name_ancestor:
+                    elif 'PropertyMention' in name_ancestor:
                         types3.add(name_class.lower())
                         boolean = 0
         return types1, types2, types3
@@ -296,7 +296,7 @@ class OntReasoner():
         
         punctuation_and_numbers = ['– ','(', ')', '?', ':', ';', ',', '.', '!', '/', '"', '\'', '’','*', '$', '0', '1', '2', '3',
                                        '4', '5', '6', '7', '8', '9']
-        with open(path, "r") as fd:
+        with open(path, 'r') as fd:
             lines = fd.read().splitlines()
             for i in range(0, len(lines), 3):
                 #polarity
@@ -340,7 +340,7 @@ class OntReasoner():
 
         timeEnd = time.time()
 
-        print("Accuracy: ", accuracy)
+        print('Accuracy: ', accuracy)
         print('RunTime: ', (timeEnd - self.timeStart))
         print('majority', len(self.majority_count))
 
@@ -353,16 +353,16 @@ class OntReasoner():
         # Save the outputs to .txt file
         if use_backup == True:
             print(self.remaining_pos_vector)
-            outF= open(FLAGS.remaining_test_path, "w")
-            with open(FLAGS.test_path, "r") as fd:
+            outF= open(FLAGS.remaining_test_path, 'w')
+            with open(FLAGS.test_path, 'r') as fd:
                 for i, line in enumerate(fd):
                     if i in self.remaining_pos_vector:
                         outF.write(line)
             outF.close()
         if use_svm == True:
             print(self.remaining_pos_vector)
-            outF= open(FLAGS.remaining_svm_test_path, "w")
-            with open(FLAGS.test_svm_path, "r") as fd:
+            outF= open(FLAGS.remaining_svm_test_path, 'w')
+            with open(FLAGS.test_svm_path, 'r') as fd:
                 for i, line in enumerate(fd):
                     if i in self.remaining_pos_vector:
                         outF.write(line)
@@ -370,16 +370,16 @@ class OntReasoner():
         if cross_val:
             if use_backup == True:
                 print(self.remaining_pos_vector)
-                outF= open("data/programGeneratedData/crossValidation"+str(FLAGS.year)+'/cross_val_remainder_'+str(j)+'.txt', "w")
-                with open(FLAGS.test_path, "r") as fd:
+                outF= open('data/programGeneratedData/crossValidation'+str(FLAGS.year)+'/cross_val_remainder_'+str(j)+'.txt', 'w')
+                with open(FLAGS.test_path, 'r') as fd:
                     for i, line in enumerate(fd):
                         if i in self.remaining_pos_vector:
                             outF.write(line)
                 outF.close()
             if use_svm == True:
                 print(self.remaining_pos_vector)
-                outF= open("data/programGeneratedData/crossValidation"+str(FLAGS.year)+'/svm/cross_val_remainder_'+str(j)+'.txt', "w")
-                with open(FLAGS.test_svm_path, "r") as fd:
+                outF= open('data/programGeneratedData/crossValidation'+str(FLAGS.year)+'/svm/cross_val_remainder_'+str(j)+'.txt', 'w')
+                with open(FLAGS.test_svm_path, 'r') as fd:
                     for i, line in enumerate(fd):
                         if i in self.remaining_pos_vector:
                             outF.write(line)
