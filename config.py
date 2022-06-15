@@ -8,26 +8,37 @@ FLAGS = tf.app.flags.FLAGS
 
 
 # general variables
+tf.app.flags.DEFINE_string('da_type','none','type of data augmentation method used. (can be: none)')
+
 tf.app.flags.DEFINE_string('embedding_type','BERT','type of embedding used. (OLD: can be: glove, word2vec-cbow, word2vec-SG, fasttext, BERT, BERT_Large, ELMo)')
-tf.app.flags.DEFINE_integer('year', 2015, 'possible dataset years [2015, 2016]')
+tf.app.flags.DEFINE_integer('year', 2016, 'possible dataset years [2015, 2016]')
 tf.app.flags.DEFINE_integer('embedding_dim', 768, 'dimension of word embedding')
-tf.app.flags.DEFINE_integer('batch_size', 20, 'number of example per batch')
-tf.app.flags.DEFINE_integer('n_hidden', 300, 'number of hidden unit')
-tf.app.flags.DEFINE_float('learning_rate', 0.07, 'learning rate')
 tf.app.flags.DEFINE_integer('n_class', 3, 'number of distinct class')
 tf.app.flags.DEFINE_integer('max_sentence_len', 80, 'max number of tokens per sentence')
 tf.app.flags.DEFINE_integer('max_doc_len', 20, 'max number of tokens per sentence')
-tf.app.flags.DEFINE_float('l2_reg', 0.00001, 'l2 regularization')
-tf.app.flags.DEFINE_float('random_base', 0.01, 'initial random base')
 tf.app.flags.DEFINE_integer('display_step', 4, 'number of test display step')
-tf.app.flags.DEFINE_integer('n_iter', 200, 'number of train iter')
-tf.app.flags.DEFINE_float('keep_prob1', 0.5, 'dropout keep prob')
-tf.app.flags.DEFINE_float('keep_prob2', 0.5, 'dropout keep prob')
 tf.app.flags.DEFINE_string('t1', 'last', 'type of hidden output')
 tf.app.flags.DEFINE_string('t2', 'last', 'type of hidden output')
+tf.app.flags.DEFINE_integer('max_target_len', 19, 'max target length')
+
+# hyperparameters to be tuned
+# order of hyperparameters: learning_rate, keep_prob, momentum, l2, batch_size
+# default hyperparameters: learning_rate=0.09, keep_prob=0.3, momentum=0.85, l2=0.00001
+tf.app.flags.DEFINE_float('learning_rate', 0.1, 'learning rate')
+tf.app.flags.DEFINE_float('keep_prob1', 0.7, 'dropout keep prob for the hidden layers of the lcr-rot mode (tuned)')
+tf.app.flags.DEFINE_float('momentum', 0.99, 'momentum')
+tf.app.flags.DEFINE_float('l2_reg', 0.01, 'l2 regularization')
+tf.app.flags.DEFINE_integer('batch_size', 250, 'number of example per batch') # batch size limited by avaliable (GPU) memory, with 4GB the max is ~250
+
+# hyperparameters that are not tuned
+tf.app.flags.DEFINE_float('keep_prob2', 0.5, 'dropout keep prob for the softmax layer in the lcr-rot model (not tuned)')
+tf.app.flags.DEFINE_integer('n_hidden', 300, 'number of hidden unit')
+tf.app.flags.DEFINE_integer('n_iter', 100, 'number of train iter')
 tf.app.flags.DEFINE_integer('n_layer', 3, 'number of stacked rnn')
 tf.app.flags.DEFINE_string('is_r', '1', 'prob')
-tf.app.flags.DEFINE_integer('max_target_len', 19, 'max target length')
+
+# random seed
+tf.app.flags.DEFINE_float('random_base', 0.01, 'initial random base')
 
 
 # NEWLY CREATED BY ARTHUR
@@ -38,9 +49,10 @@ tf.app.flags.DEFINE_string('bert_pretrained_path', 'data/external_data/uncased_L
 tf.app.flags.DEFINE_string('temp_bert_dir', 'data/program_generated_data/temp/bert/', 'directory for temporary BERT files')
 tf.app.flags.DEFINE_string('gpu_id', '0', 'id of the gpu use for running the models used bu tensorflow')
 tf.app.flags.DEFINE_string('java_path', 'C:/Program Files/Java/jre1.8.0_241/bin/java.exe', 'path to java runtime environment')
+tf.app.flags.DEFINE_string('hyper_results_dir', 'hyper_results/'+str(FLAGS.year)+'_'+str(FLAGS.da_type)+'/', 'path to directory containg hyperparameter optimisation results')
 
 
-# FOUND IN THE CODE AND DOCUMENTED IN WORD FILE (notes.docx)
+# FOUND IN THE CODE AND DOCUMENTED IN MY WORD FILE (notes.docx)
 tf.app.flags.DEFINE_string('embedding_path', 'data/program_generated_data/'+str(FLAGS.embedding_type)+'_'+str(FLAGS.year)+'_'+str(FLAGS.embedding_dim)+'.txt', 'word embeddings from BERT') # two options, think this is this one, otherwise result from prepare_bert
 tf.app.flags.DEFINE_string('train_path', 'data/program_generated_data/'+str(FLAGS.embedding_dim)+'traindata'+str(FLAGS.year)+str(FLAGS.embedding_type)+'.txt', 'train data path')
 tf.app.flags.DEFINE_string('test_path', 'data/program_generated_data/' + str(FLAGS.embedding_dim)+'testdata'+str(FLAGS.year)+str(FLAGS.embedding_type)+'.txt', 'test data path')
@@ -52,6 +64,10 @@ tf.app.flags.DEFINE_string('test_data', 'data/external_data/restaurant_test_'+st
 tf.app.flags.DEFINE_string('method', 'AE', 'model type: AE, AT or AEAT')
 tf.app.flags.DEFINE_string('prob_file', 'prob1.txt', 'prob')
 tf.app.flags.DEFINE_string('saver_file', 'prob1.txt', 'prob')
+
+
+tf.app.flags.DEFINE_string('hyper_train_path', 'data/program_generated_data/'+str(FLAGS.embedding_dim)+'hypertraindata'+str(FLAGS.year)+str(FLAGS.embedding_type)+'.txt', 'hyper train data path')
+tf.app.flags.DEFINE_string('hyper_eval_path', 'data/program_generated_data/'+str(FLAGS.embedding_dim)+'hyperevaldata'+str(FLAGS.year)+str(FLAGS.embedding_type)+'.txt', 'hyper eval data path')
 
 
 #######################################################################################  OLD
@@ -91,7 +107,36 @@ tf.app.flags.DEFINE_string('saver_file', 'prob1.txt', 'prob')
 # tf.app.flags.DEFINE_string('saver_file', 'prob1.txt', 'prob')
 
 
-#######################################################################################  END OLD
+######################################################################################  END OLD
+
+
+
+########################### DEFAULT HYPERPARAMETERS
+
+# general variables
+# tf.app.flags.DEFINE_string('embedding_type','BERT','type of embedding used. (OLD: can be: glove, word2vec-cbow, word2vec-SG, fasttext, BERT, BERT_Large, ELMo)')
+# tf.app.flags.DEFINE_integer('year', 2015, 'possible dataset years [2015, 2016]')
+# tf.app.flags.DEFINE_integer('embedding_dim', 768, 'dimension of word embedding')
+# tf.app.flags.DEFINE_integer('batch_size', 250, 'number of example per batch') # increase to increase GPU memory usage and speed up training, decrease in case of random errors or resource exhausted related errors
+# tf.app.flags.DEFINE_integer('n_hidden', 300, 'number of hidden unit')
+# tf.app.flags.DEFINE_float('learning_rate', 0.07, 'learning rate')
+# tf.app.flags.DEFINE_integer('n_class', 3, 'number of distinct class')
+# tf.app.flags.DEFINE_integer('max_sentence_len', 80, 'max number of tokens per sentence')
+# tf.app.flags.DEFINE_integer('max_doc_len', 20, 'max number of tokens per sentence')
+# tf.app.flags.DEFINE_float('l2_reg', 0.00001, 'l2 regularization')
+# tf.app.flags.DEFINE_float('random_base', 0.01, 'initial random base')
+# tf.app.flags.DEFINE_integer('display_step', 4, 'number of test display step')
+# tf.app.flags.DEFINE_integer('n_iter', 200, 'number of train iter')
+# tf.app.flags.DEFINE_float('keep_prob1', 0.5, 'dropout keep prob')
+# tf.app.flags.DEFINE_float('keep_prob2', 0.5, 'dropout keep prob')
+# tf.app.flags.DEFINE_string('t1', 'last', 'type of hidden output')
+# tf.app.flags.DEFINE_string('t2', 'last', 'type of hidden output')
+# tf.app.flags.DEFINE_integer('n_layer', 3, 'number of stacked rnn')
+# tf.app.flags.DEFINE_string('is_r', '1', 'prob')
+# tf.app.flags.DEFINE_integer('max_target_len', 19, 'max target length')
+
+########################### END DEFAULT HYPERPARAMETERS
+
 
 
 def print_config():

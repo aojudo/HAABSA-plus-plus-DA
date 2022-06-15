@@ -15,7 +15,7 @@ import numpy as np
 tf.set_random_seed(1)
 
 def lcr_rot(input_fw, input_bw, sen_len_fw, sen_len_bw, target, sen_len_tr, keep_prob1, keep_prob2, l2, _id='all'):
-    print('Hi, I am lcr_rot_hop. How are you?')
+    print('Hi, I am the LCR-Rot-hop++ model. How are you?')
     cell = tf.contrib.rnn.LSTMCell
     # left hidden
     input_fw = tf.nn.dropout(input_fw, keep_prob=keep_prob1)
@@ -92,7 +92,8 @@ def lcr_rot(input_fw, input_bw, sen_len_fw, sen_len_bw, target, sen_len_tr, keep
     prob = softmax_layer(outputs_fin, 8 * FLAGS.n_hidden, FLAGS.random_base, keep_prob2, l2, FLAGS.n_class)
     return prob, att_l, att_r, att_t_l, att_t_r
 
-def main(train_path, test_path, accuracyOnt, test_size, remaining_size, learning_rate=0.09, keep_prob=0.3, momentum=0.85, l2=0.00001):
+
+def main(train_path, test_path, accuracyOnt, test_size, remaining_size, learning_rate=FLAGS.learning_rate, keep_prob=FLAGS.keep_prob1, momentum=FLAGS.momentum, l2=FLAGS.l2_reg, batch_size=FLAGS.batch_size):
     print_config()
     with tf.device('/GPU:'+FLAGS.gpu_id):
         word_id_mapping, w2v = load_w2v(FLAGS.embedding_path, FLAGS.embedding_dim)
@@ -130,7 +131,7 @@ def main(train_path, test_path, accuracyOnt, test_size, remaining_size, learning
         title = '-d1-{}d2-{}b-{}r-{}l2-{}sen-{}dim-{}h-{}c-{}'.format(
             FLAGS.keep_prob1,
             FLAGS.keep_prob2,
-            FLAGS.batch_size,
+            batch_size,
             FLAGS.learning_rate,
             FLAGS.l2_reg,
             FLAGS.max_sentence_len,
@@ -178,8 +179,8 @@ def main(train_path, test_path, accuracyOnt, test_size, remaining_size, learning
             FLAGS.max_target_len
         )
 
-        def get_batch_data(x_f, sen_len_f, x_b, sen_len_b, yi, target, tl, batch_size, kp1, kp2, is_shuffle=True):
-            for index in batch_index(len(yi), batch_size, 1, is_shuffle):
+        def get_batch_data(x_f, sen_len_f, x_b, sen_len_b, yi, target, tl, data_batch_size, kp1, kp2, is_shuffle=True):
+            for index in batch_index(len(yi), data_batch_size, 1, is_shuffle):
                 feed_dict = {
                     x: x_f[index],
                     x_bw: x_b[index],
@@ -202,7 +203,7 @@ def main(train_path, test_path, accuracyOnt, test_size, remaining_size, learning
         for i in range(FLAGS.n_iter):
             trainacc, traincnt = 0., 0
             for train, numtrain in get_batch_data(tr_x, tr_sen_len, tr_x_bw, tr_sen_len_bw, tr_y, tr_target_word, tr_tar_len,
-                                           FLAGS.batch_size, keep_prob, keep_prob):
+                                           batch_size, keep_prob, keep_prob):
                 # _, step = sess.run([optimizer, global_step], feed_dict=train)
                 _, step, summary, _trainacc = sess.run([optimizer, global_step, train_summary_op, acc_num], feed_dict=train)
                 train_summary_writer.add_summary(summary, step)
@@ -235,12 +236,12 @@ def main(train_path, test_path, accuracyOnt, test_size, remaining_size, learning
                 acc += _acc
                 cost += _loss * num
                 cnt += num
-            print('all samples={}, correct prediction={}'.format(cnt, acc))
+            print('all samples={}, correct prediction={}'.format(cnt, acc)) # uncomment this line to see progress during running
             trainacc = trainacc / traincnt
             acc = acc / cnt
             totalacc = ((acc * remaining_size) + (accuracyOnt * (test_size - remaining_size))) / test_size
             cost = cost / cnt
-            print('Iter {}: mini-batch loss={:.6f}, train acc={:.6f}, test acc={:.6f}, combined acc={:.6f}'.format(i, cost,trainacc, acc, totalacc))
+            print('Iter {}: mini-batch loss={:.6f}, train acc={:.6f}, test acc={:.6f}, combined acc={:.6f}'.format(i, cost,trainacc, acc, totalacc)) # uncomment this line to see progress during running
             summary = sess.run(test_summary_op, feed_dict={test_loss: cost, test_acc: acc})
             test_summary_writer.add_summary(summary, step)
             if acc > max_acc:
@@ -281,7 +282,7 @@ def main(train_path, test_path, accuracyOnt, test_size, remaining_size, learning
         print('Learning_rate={}, iter_num={}, batch_size={}, hidden_num={}, l2={}'.format(
             FLAGS.learning_rate,
             FLAGS.n_iter,
-            FLAGS.batch_size,
+            batch_size,
             FLAGS.n_hidden,
             FLAGS.l2_reg
         ))

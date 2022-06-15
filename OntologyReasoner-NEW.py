@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
+
 from owlready2 import *
 import numpy as np
 import nltk
@@ -10,21 +11,22 @@ from nltk.parse.stanford import StanfordDependencyParser
 from nltk import *
 from config import *
 
-# path to the java runtime environment
-java_path = FLAGS.java_path
-nltk.internals.config_java(java_path)
+#path to the java runtime environment
+nltk.internals.config_java('C:/Program Files/Java/jre1.8.0_241/bin/java.exe')
+java_path = 'C:/Program Files/Java/jre1.8.0_241/bin/java.exe'
 os.environ['JAVAHOME'] = java_path
-
+# owlready2.JAVA_EXE = 'C:/Program Files/Java/jre1.8.0_241/bin/java.exe'
 
 class OntReasoner():
     def __init__(self):
-        onto_path.append('data/external_data')  # Path to ontology
-        self.onto = get_ontology('ontology.owl')  # Name of ontology
+        onto_path.append("data/external_data")  # Path to ontology
+        self.onto = get_ontology("ontology.owl")  # Name of ontology
         self.onto = self.onto.load()
         self.timeStart = time.time()
         self.classes = set(self.onto.classes())
         self.sencount = -1
         self.my_dict = {}
+
 
         self.remaining_sentence_vector = []
         self.remaining_target_vector = []
@@ -46,7 +48,7 @@ class OntReasoner():
 
         lemma_of_words_with_classes, words_with_classes, words_classes, target_class = self.get_class_of_words(words_in_sentence,
                                                                                                           target)
-        
+
         positive_class = onto.search(iri='*Positive')[0]
         negative_class = onto.search(iri='*Negative')[0]
 
@@ -130,9 +132,9 @@ class OntReasoner():
                 lemma_of_word = wordnet_lemmatizer.lemmatize(word, 'r')
             else:  # Default is noun
                 lemma_of_word = wordnet_lemmatizer.lemmatize(word)
-        
+
             for value in list(self.my_dict.values()):
-                if lemma_of_word in value:            
+                if lemma_of_word in value:
                     lemma_of_word_class = list(self.my_dict.keys())[list(self.my_dict.values()).index(value)]
                     self.classes.append(lemma_of_word_class)
                     lemma_of_words_with_classes.append(lemma_of_word)
@@ -140,14 +142,13 @@ class OntReasoner():
                     if word == target:
                         target_class = lemma_of_word_class
                     break
-        
         return lemma_of_words_with_classes, words_with_classes, self.classes, target_class
 
 
     def is_negated(self, word, words_in_sentence):
         #negation check with window and dependency graph
-        path_to_jar = 'data/external_data/stanford-parser-full-2018-02-27/stanford-parser.jar'
-        path_to_models_jar = 'data/external_data/stanford-parser-full-2018-02-27/stanford-parser-3.9.1-models.jar'
+        path_to_jar = 'data/externalData/stanford-parser-full-2018-02-27/stanford-parser.jar'
+        path_to_models_jar = 'data/externalData/stanford-parser-full-2018-02-27/stanford-parser-3.9.1-models.jar'
 
         dependency_parser = StanfordDependencyParser(path_to_jar=path_to_jar, path_to_models_jar=path_to_models_jar)
 
@@ -157,14 +158,14 @@ class OntReasoner():
         if index < 3:
             for i in range(index):
                 temp = words_in_sentence[i]
-                if 'not' in temp or 'n\'t' in temp or 'never' in temp:
+                if "not" in temp or "n't" in temp or "never" in temp:
                     negated = True
         else:
             for i in range(index - 3, index):
                 temp = words_in_sentence[i]
-                if 'not' in temp or 'n\'t' in temp or 'never' in temp:
+                if "not" in temp or "n't" in temp or "never" in temp:
                     negated = True
-        negations = ['not', 'n,t', 'never']
+        negations = ["not", "n,t", "never"]
         if negated == False and any(x in s for x in negations for s in words_in_sentence):
             print('negation parser')
             print(' '.join(words_in_sentence))
@@ -210,14 +211,14 @@ class OntReasoner():
         target_mentions = []
         for target_an in target_ancestors:
             name = target_an.__name__
-            if 'Mention' in name:
+            if "Mention" in name:
                 target_mentions.append(name.rsplit('Mention', 1)[0])
 
         onto_ancestors = onto_class.ancestors()
         onto_mentions = []
         for onto_an in onto_ancestors:
             name = onto_an.__name__
-            if 'Mention' in name:
+            if "Mention" in name:
                 onto_mentions.append(name.rsplit('Mention', 1)[0])
 
         common_list = list(set(target_mentions).intersection(set(onto_mentions)))
@@ -236,7 +237,7 @@ class OntReasoner():
 
     def get_related_aspect_mentions(self, onto_class):
         ancestors = onto_class.ancestors()
-        all_mention = self.onto.search(iri='*Mention')
+        all_mention = self.onto.search(iri="*Mention")
         related_aspect_mentions = []
         for an in ancestors:
             an_name = an.__name__
@@ -267,7 +268,7 @@ class OntReasoner():
 
         for c in classes:
             name_class = c.__name__
-            remove_words = ['Property', 'Mention', 'Positive', 'Neutral', 'Negative']
+            remove_words = ['Property', "Mention", "Positive", "Neutral", "Negative"]
             if any(word in name_class for word in remove_words):
                 continue
             ancestors = c.ancestors()
@@ -280,13 +281,13 @@ class OntReasoner():
 
             for name_ancestor in ancestors_list:
                 if boolean == 1:
-                    if 'Generic' in name_ancestor:
+                    if "Generic" in name_ancestor:
                         types1.add(name_class.lower())
                         boolean = 0
-                    elif 'Positive' in name_ancestor or 'Negative' in name_ancestor:
+                    elif "Positive" in name_ancestor or "Negative" in name_ancestor:
                         types2.add(name_class.lower())
                         boolean = 0
-                    elif 'PropertyMention' in name_ancestor:
+                    elif "PropertyMention" in name_ancestor:
                         types3.add(name_class.lower())
                         boolean = 0
         return types1, types2, types3
@@ -295,9 +296,8 @@ class OntReasoner():
         types1, types2, types3 = self.create_types()
         
         punctuation_and_numbers = ['– ','(', ')', '?', ':', ';', ',', '.', '!', '/', '"', '\'', '’','*', '$', '0', '1', '2', '3',
-                                       '4', '5', '6', '7', '8', '9', '_'] 
-                                       # added '_' in a bid to solve an error
-        with open(path, 'r') as fd:
+                                       '4', '5', '6', '7', '8', '9']
+        with open(path, "r") as fd:
             lines = fd.read().splitlines()
             for i in range(0, len(lines), 3):
                 #polarity
@@ -341,7 +341,7 @@ class OntReasoner():
 
         timeEnd = time.time()
 
-        print('Accuracy: ', accuracy)
+        print("Accuracy: ", accuracy)
         print('RunTime: ', (timeEnd - self.timeStart))
         print('majority', len(self.majority_count))
 
@@ -354,16 +354,16 @@ class OntReasoner():
         # Save the outputs to .txt file
         if use_backup == True:
             print(self.remaining_pos_vector)
-            outF= open(FLAGS.remaining_test_path, 'w')
-            with open(FLAGS.test_path, 'r') as fd:
+            outF= open(FLAGS.remaining_test_path, "w")
+            with open(FLAGS.test_path, "r") as fd:
                 for i, line in enumerate(fd):
                     if i in self.remaining_pos_vector:
                         outF.write(line)
             outF.close()
         if use_svm == True:
             print(self.remaining_pos_vector)
-            outF= open(FLAGS.remaining_svm_test_path, 'w')
-            with open(FLAGS.test_svm_path, 'r') as fd:
+            outF= open(FLAGS.remaining_svm_test_path, "w")
+            with open(FLAGS.test_svm_path, "r") as fd:
                 for i, line in enumerate(fd):
                     if i in self.remaining_pos_vector:
                         outF.write(line)
@@ -371,20 +371,18 @@ class OntReasoner():
         if cross_val:
             if use_backup == True:
                 print(self.remaining_pos_vector)
-                outF= open('data/programGeneratedData/crossValidation'+str(FLAGS.year)+'/cross_val_remainder_'+str(j)+'.txt', 'w')
-                with open(FLAGS.test_path, 'r') as fd:
+                outF= open("data/programGeneratedData/crossValidation"+str(FLAGS.year)+'/cross_val_remainder_'+str(j)+'.txt', "w")
+                with open(FLAGS.test_path, "r") as fd:
                     for i, line in enumerate(fd):
                         if i in self.remaining_pos_vector:
                             outF.write(line)
                 outF.close()
             if use_svm == True:
                 print(self.remaining_pos_vector)
-                outF= open('data/programGeneratedData/crossValidation'+str(FLAGS.year)+'/svm/cross_val_remainder_'+str(j)+'.txt', 'w')
-                with open(FLAGS.test_svm_path, 'r') as fd:
+                outF= open("data/programGeneratedData/crossValidation"+str(FLAGS.year)+'/svm/cross_val_remainder_'+str(j)+'.txt', "w")
+                with open(FLAGS.test_svm_path, "r") as fd:
                     for i, line in enumerate(fd):
                         if i in self.remaining_pos_vector:
                             outF.write(line)
 
-
         return accuracy, len(self.remaining_pos_vector)/3
-

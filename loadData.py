@@ -2,6 +2,8 @@ from dataReader2016 import read_data_2016
 from sklearn.model_selection import StratifiedKFold
 import numpy as np
 import random
+import os
+
 
 def loadDataAndEmbeddings(config,loadData):
 
@@ -77,6 +79,11 @@ def loadHyperData (config,loadData,percentage=0.8):
     if loadData:
         '''Splits a file in 2 given the `percentage` to go in the large file.'''
         random.seed(12345)
+        
+        # check whether hyperparameter datasets exist, if yes, throw 
+        if os.path.exists(FLAGS.hyper_train_path) or os.path.exists(FLAGS.hyper_eval_path):
+            raise Exception('One or both of the paths used to store hyperparameter train and test data exist(s) already. Consider removing these files, or make sure not to create new ones.')
+        
         with open(FLAGS.train_path, 'r') as fin, \
         open(FLAGS.hyper_train_path, 'w') as foutBig, \
         open(FLAGS.hyper_eval_path, 'w') as foutSmall:
@@ -91,22 +98,24 @@ def loadHyperData (config,loadData,percentage=0.8):
             for chunk in chunked[numlines:]:
                 for line in chunk:
                     foutSmall.write(line)
-        with open(FLAGS.train_svm_path, 'r') as fin, \
-        open(FLAGS.hyper_svm_train_path, 'w') as foutBig, \
-        open(FLAGS.hyper_svm_eval_path, 'w') as foutSmall:
-            lines = fin.readlines()
+                    
+        # does the same but for SVM files            
+        # with open(FLAGS.train_svm_path, 'r') as fin, \
+        # open(FLAGS.hyper_svm_train_path, 'w') as foutBig, \
+        # open(FLAGS.hyper_svm_eval_path, 'w') as foutSmall:
+            # lines = fin.readlines()
 
-            chunked = [lines[i:i+4] for i in range(0, len(lines), 4)]
-            random.shuffle(chunked)
-            numlines = int(len(chunked)*percentage)
-            for chunk in chunked[:numlines]:
-                for line in chunk:
-                    foutBig.write(line)
-            for chunk in chunked[numlines:]:
-                for line in chunk:
-                    foutSmall.write(line)
+            # chunked = [lines[i:i+4] for i in range(0, len(lines), 4)]
+            # random.shuffle(chunked)
+            # numlines = int(len(chunked)*percentage)
+            # for chunk in chunked[:numlines]:
+                # for line in chunk:
+                    # foutBig.write(line)
+            # for chunk in chunked[numlines:]:
+                # for line in chunk:
+                    # foutSmall.write(line)
 
-    #get statistic properties from txt file
+    # get statistic properties from txt file
     train_size, train_polarity_vector = getStatsFromFile(FLAGS.hyper_train_path)
     test_size, test_polarity_vector = getStatsFromFile(FLAGS.hyper_eval_path)
 

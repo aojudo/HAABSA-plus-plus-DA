@@ -45,7 +45,7 @@ BATCH_SIZE = 128
 # define the gpu to use
 os.environ['CUDA_VISIBLE_DEVICES'] = FLAGS.gpu_id
 
-#disable printing of logs during running, remove for debugging
+# disable printing of logs during running, remove for debugging
 tf.logging.set_verbosity(tf.logging.ERROR)
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' 
 

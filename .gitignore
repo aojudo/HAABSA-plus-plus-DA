@@ -1,5 +1,5 @@
 # ignore data
-data/*
+data/**
 
 
 # include external_data folder
@@ -28,11 +28,16 @@ data/program_generated_data/temp/bert/**
 
 
 # ignore all other program generated data
-cross_results_2015/*
-cross_results_2016/*
-hyper_results/*
-results/*
-summary/*
+cross_results_2015/**
+cross_results_2016/**
+hyper_results/**
+results/**
+summary/**
+
+
+# ignore contents of the hyper_results folder
+hyper_results/**
+!hyper_results/README.md
 
 
 # ignore cache
