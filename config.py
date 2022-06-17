@@ -11,7 +11,7 @@ FLAGS = tf.app.flags.FLAGS
 tf.app.flags.DEFINE_string('da_type','none','type of data augmentation method used. (can be: none)')
 
 tf.app.flags.DEFINE_string('embedding_type','BERT','type of embedding used. (OLD: can be: glove, word2vec-cbow, word2vec-SG, fasttext, BERT, BERT_Large, ELMo)')
-tf.app.flags.DEFINE_integer('year', 2016, 'possible dataset years [2015, 2016]')
+tf.app.flags.DEFINE_integer('year', 2015, 'possible dataset years [2015, 2016]')
 tf.app.flags.DEFINE_integer('embedding_dim', 768, 'dimension of word embedding')
 tf.app.flags.DEFINE_integer('n_class', 3, 'number of distinct class')
 tf.app.flags.DEFINE_integer('max_sentence_len', 80, 'max number of tokens per sentence')
@@ -23,12 +23,12 @@ tf.app.flags.DEFINE_integer('max_target_len', 19, 'max target length')
 
 # hyperparameters to be tuned
 # order of hyperparameters: learning_rate, keep_prob, momentum, l2, batch_size
-# default hyperparameters: learning_rate=0.09, keep_prob=0.3, momentum=0.85, l2=0.00001
-tf.app.flags.DEFINE_float('learning_rate', 0.1, 'learning rate')
-tf.app.flags.DEFINE_float('keep_prob1', 0.7, 'dropout keep prob for the hidden layers of the lcr-rot mode (tuned)')
-tf.app.flags.DEFINE_float('momentum', 0.99, 'momentum')
-tf.app.flags.DEFINE_float('l2_reg', 0.01, 'l2 regularization')
+tf.app.flags.DEFINE_float('learning_rate', 0.06, 'learning rate')
+tf.app.flags.DEFINE_float('keep_prob1', 0.5, 'dropout keep prob for the hidden layers of the lcr-rot mode (tuned)')
+tf.app.flags.DEFINE_float('momentum', 0.85, 'momentum')
+tf.app.flags.DEFINE_float('l2_reg', 0.00001, 'l2 regularization')
 tf.app.flags.DEFINE_integer('batch_size', 250, 'number of example per batch') # batch size limited by avaliable (GPU) memory, with 4GB the max is ~250
+# default hyperparameters: learning_rate=0.09, keep_prob=0.3, momentum=0.85, l2=0.00001
 
 # hyperparameters that are not tuned
 tf.app.flags.DEFINE_float('keep_prob2', 0.5, 'dropout keep prob for the softmax layer in the lcr-rot model (not tuned)')
@@ -42,8 +42,8 @@ tf.app.flags.DEFINE_float('random_base', 0.01, 'initial random base')
 
 
 # NEWLY CREATED BY ARTHUR
-tf.app.flags.DEFINE_string('raw_data_file', 'data/program_generated_data/raw_data/raw_data'+str(FLAGS.year)+'.txt', 'raw data file for retrieving BERT embeddings')
 tf.app.flags.DEFINE_string('raw_data_dir', 'data/program_generated_data/raw_data/', 'folder contataining raw data')
+tf.app.flags.DEFINE_string('raw_data_file', FLAGS.raw_data_dir+'raw_data'+str(FLAGS.year)+'.txt', 'raw data file for retrieving BERT embeddings, contains both train and test data')
 tf.app.flags.DEFINE_string('bert_embedding_path', 'data/program_generated_data/bert_embeddings/bert_base_restaurant_'+str(FLAGS.year)+'.txt', 'path to BERT embeddings file')
 tf.app.flags.DEFINE_string('bert_pretrained_path', 'data/external_data/uncased_L-12_H-768_A-12', 'path to pretrained BERT model')
 tf.app.flags.DEFINE_string('temp_bert_dir', 'data/program_generated_data/temp/bert/', 'directory for temporary BERT files')
@@ -54,13 +54,13 @@ tf.app.flags.DEFINE_string('hyper_results_dir', 'hyper_results/'+str(FLAGS.year)
 
 # FOUND IN THE CODE AND DOCUMENTED IN MY WORD FILE (notes.docx)
 tf.app.flags.DEFINE_string('embedding_path', 'data/program_generated_data/'+str(FLAGS.embedding_type)+'_'+str(FLAGS.year)+'_'+str(FLAGS.embedding_dim)+'.txt', 'word embeddings from BERT') # two options, think this is this one, otherwise result from prepare_bert
-tf.app.flags.DEFINE_string('train_path', 'data/program_generated_data/'+str(FLAGS.embedding_dim)+'traindata'+str(FLAGS.year)+str(FLAGS.embedding_type)+'.txt', 'train data path')
-tf.app.flags.DEFINE_string('test_path', 'data/program_generated_data/' + str(FLAGS.embedding_dim)+'testdata'+str(FLAGS.year)+str(FLAGS.embedding_type)+'.txt', 'test data path')
+tf.app.flags.DEFINE_string('train_path', 'data/program_generated_data/'+str(FLAGS.embedding_dim)+'traindata'+str(FLAGS.year)+str(FLAGS.embedding_type)+'.txt', 'path for train sentences with BERT embeddings')
+tf.app.flags.DEFINE_string('test_path', 'data/program_generated_data/' + str(FLAGS.embedding_dim)+'testdata'+str(FLAGS.year)+str(FLAGS.embedding_type)+'.txt', 'path for test sentences with BERT embeddings')
 tf.app.flags.DEFINE_string('remaining_test_path', 'data/program_generated_data/'+str(FLAGS.embedding_dim)+'remainingtestdata'+str(FLAGS.year)+'.txt', 'formatted remaining test data path after ontology')
 
 # OTHER USEFUL FLAGS FROM THIS FILE
-tf.app.flags.DEFINE_string('train_data', 'data/external_data/restaurant_train_'+str(FLAGS.year)+'.xml', 'train data path')
-tf.app.flags.DEFINE_string('test_data', 'data/external_data/restaurant_test_'+str(FLAGS.year)+'.xml', 'test data path')
+tf.app.flags.DEFINE_string('train_data', 'data/external_data/restaurant_train_'+str(FLAGS.year)+'.xml', 'original xml train data path')
+tf.app.flags.DEFINE_string('test_data', 'data/external_data/restaurant_test_'+str(FLAGS.year)+'.xml', 'original xml test data path')
 tf.app.flags.DEFINE_string('method', 'AE', 'model type: AE, AT or AEAT')
 tf.app.flags.DEFINE_string('prob_file', 'prob1.txt', 'prob')
 tf.app.flags.DEFINE_string('saver_file', 'prob1.txt', 'prob')

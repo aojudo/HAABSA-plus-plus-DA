@@ -27,27 +27,11 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 # main function
 def main(_):
-    loadData         = False        # only for non-contextualised word embeddings.
+    loadData        = False        # only for non-contextualised word embeddings.
                                     # Use prepareBERT for BERT (and BERT_Large) and prepareELMo for ELMo
-    useOntology      = False       # When run together with runLCRROTALT, the two-step method is used
-    runLCRROTALT     = False
-
-    runSVM           = False
-    runCABASC        = False
-    runLCRROT        = False
-    runLCRROTINVERSE = False
-    weightanalysis   = False
-
-    runLCRROTALT_v1     = False
-    runLCRROTALT_v2     = False
-    runLCRROTALT_v3     = False
-    runLCRROTALT_v4     = True
-
-    # determine if backupmethod is used
-    if runCABASC or runLCRROT or runLCRROTALT or runLCRROTINVERSE or runSVM or runLCRROTALT_v1 or runLCRROTALT_v2 or runLCRROTALT_v3 or runLCRROTALT_v4:
-        backup = True
-    else:
-        backup = False
+    useOntology     = False        # When run together with runLCRROTALT, the two-step method is used
+    weightanalysis  = False
+    runLCRROTALT_v4 = True
     
     # retrieve data and wordembeddings
     train_size, test_size, train_polarity_vector, test_polarity_vector = loadDataAndEmbeddings(FLAGS, loadData)
@@ -58,7 +42,7 @@ def main(_):
         print('Starting Ontology Reasoner')
         #in sample accuracy
         Ontology = OntReasoner()
-        accuracyOnt, remaining_size = Ontology.run(backup,FLAGS.test_path, runSVM)
+        accuracyOnt, remaining_size = Ontology.run(runLCRROTALT_v4, FLAGS.test_path)
         #out of sample accuracy
         #Ontology = OntReasoner()      
         #accuracyInSampleOnt, remainingInSample_size = Ontology.run(backup,FLAGS.train_path_ont, runSVM)        
@@ -75,6 +59,7 @@ def main(_):
        tf.reset_default_graph()
 
     print('Finished program succesfully')
+
 
 if __name__ == '__main__':
     # wrapper that handles flag parsing and then dispatches the main

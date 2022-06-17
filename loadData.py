@@ -9,7 +9,7 @@ def loadDataAndEmbeddings(config,loadData):
 
     FLAGS = config
 
-################################ should not be necessary
+################################ should be changed to: if loadData=true: { if SLAGS.da-method=='da-method': { prepare datasets (xml_to_raw), get BERT embedings (get_bert), prepare BERT embeddings (prepare_bert) } } else: { ...
     if loadData == True:
         source_count, target_count = [], []
         source_word2idx, target_phrase2idx = {}, {}
@@ -19,6 +19,7 @@ def loadDataAndEmbeddings(config,loadData):
         print('reading test data...')
         test_data = read_data_2016(FLAGS.test_data, source_count, source_word2idx, target_count, target_phrase2idx, FLAGS.test_path)
 
+        ################## replace by: get_bert and prepare_bert
         wt = np.random.normal(0, 0.05, [len(source_word2idx), 300])
         word_embed = {}
         count = 0.0
@@ -30,7 +31,8 @@ def loadDataAndEmbeddings(config,loadData):
                     count += 1
                     
         print('finished embedding context vectors...')
-
+        
+        # already happens in my prepare_bert
         #print data to txt file
         outF= open(FLAGS.embedding_path, 'w')
         for i, word in enumerate(source_word2idx):
@@ -40,10 +42,13 @@ def loadDataAndEmbeddings(config,loadData):
             outF.write('\n')
         outF.close()
         print((len(source_word2idx)-count)/len(source_word2idx)*100)
+        ################## end replace by
         
+        # probably not possible with my xml_to_raw implementation, so use code in following else block
         return train_data[0], test_data[0], train_data[4], test_data[4]
-############################### end
+############################### end should be changed to
 
+    # propably, this should happen either way. IE, else should be removed
     else:
         #get statistic properties from txt file
         train_size, train_polarity_vector = getStatsFromFile(FLAGS.train_path)
@@ -85,8 +90,8 @@ def loadHyperData (config,loadData,percentage=0.8):
             raise Exception('One or both of the paths used to store hyperparameter train and test data exist(s) already. Consider removing these files, or make sure not to create new ones.')
         
         with open(FLAGS.train_path, 'r') as fin, \
-        open(FLAGS.hyper_train_path, 'w') as foutBig, \
-        open(FLAGS.hyper_eval_path, 'w') as foutSmall:
+             open(FLAGS.hyper_train_path, 'w') as foutBig, \
+             open(FLAGS.hyper_eval_path, 'w') as foutSmall:
             lines = fin.readlines()
 
             chunked = [lines[i:i+3] for i in range(0, len(lines), 3)]
@@ -121,6 +126,7 @@ def loadHyperData (config,loadData,percentage=0.8):
 
     return train_size, test_size, train_polarity_vector, test_polarity_vector
 
+# not used for this project, so not tested
 def loadCrossValidation (config, split_size, load=True):
     FLAGS = config
     if load:

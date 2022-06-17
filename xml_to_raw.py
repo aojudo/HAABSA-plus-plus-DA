@@ -1,26 +1,34 @@
-# Data reader for converting the XML SemEval data to raw data for retrieving the BERT embeddings.
+# Data reader for converting the XML SemEval data and possible augmented data 
+# to raw data for retrieving the BERT embeddings.
 #
 # https://github.com/aojudo/HAABSA-plus-plus-DA
 #
-# Adapted from Van Berkum et al. (2021)
-# https://github.com/stefanvanberkum/CD-ABSC
-#
-# Van Berkum, S., Van Megen, S., Savelkoul, M., Weterman, P., & Frasincar, F. (2021). Fine-tuning 
-# for cross-domain aspect-based sentiment classification. IEEE/WIC/ACM International Conference on 
-# Web Intelligence (WI-IAT 2021), 524–531. https://doi.org/10.1145/3486622.3494003
+# Adapted from Van Berkum et al. (2021) https://github.com/stefanvanberkum/CD-ABSC and
+# Liesting et al. (2020) https://github.com/tomasLiesting/HAABSADA.
+
 
 import os
+import json
 import re
 import xml.etree.ElementTree as ET
-from collections import Counter
 import shutil
 import nltk
+import string
+import en_core_web_sm
+import numpy as np
+import data_augmentation
+import random
+import io
+from tqdm import tqdm
+from collections import Counter
 
-#import parameter configuration and data paths
+# import parameter configuration and data paths
 from config import *
 
+n_nlp = en_core_web_sm.load()
 
-def window(iterable, size):  #stack overflow solution for sliding window
+
+def window(iterable, size): # stack overflow solution for sliding window
     '''
     Method obtained from Trusca et al. (2020), no original docstring provided.
     :param iterable:
@@ -73,15 +81,19 @@ def _get_data_tuple(sptoks, asp_termIn, label):
     return pos_info, lab
 
 
-def read_xml(in_file, source_count, source_word2idx, target_count, target_phrase2idx, out_file):
+def read_xml(in_file, source_count, source_word2idx, target_count, target_phrase2idx, out_file, augment_data, augmentation_file):
     '''
-    Reads data for the 2014 restaurant and laptop dataset. Method adapted from Trusca et al. (2020).
+    Reads data for the 2015 and 2016 restaurant. If augment_data==True, augmented data is added to the
+    raw output files.
+    
     :param in_file: xml data file location
     :param source_count: list that contains list [<pad>, 0] at the first position [empty input] and all the unique words with number of occurences as tuples [empty input]
     :param source_word2idx: dictionary with unique words and unique index [empty input]
     :param target_count: list that contains list [<pad>, 0] at the first position [empty input] and all the unique words with number of occurences as tuples [empty input]
     :param target_phrase2idx: dictionary with unique words and unique indices [empty input]
     :param out_file: file path for output
+    :param augment_data: boolean representing whether augmented data has to be added to the dataset
+    :param augmentation_file: 
     :return: tuple specified in function
     '''
     # Returns:
@@ -95,7 +107,7 @@ def read_xml(in_file, source_count, source_word2idx, target_count, target_phrase
     if not os.path.isfile(in_file):
         raise Exception('Data %s not found' % in_file)
 
-    # Parse xml file to tree.
+    # parse xml file to tree.
     tree = ET.parse(in_file)
     root = tree.getroot()
 
@@ -198,7 +210,7 @@ def main():
     # locations for raw files
     train_raw = FLAGS.raw_data_dir+'/raw_data'+str(FLAGS.year)+'_train.txt'
     test_raw = FLAGS.raw_data_dir+'/raw_data'+str(FLAGS.year)+'_test.txt'
-    train_test_raw = FLAGS.raw_data_dir+'/raw_data'+str(FLAGS.year)+'.txt'
+    train_test_raw = FLAGS.raw_data_file
    
     # check whether files exist already, else create raw data files
     if os.path.isfile(train_raw):

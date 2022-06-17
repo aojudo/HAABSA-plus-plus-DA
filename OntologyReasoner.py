@@ -291,7 +291,7 @@ class OntReasoner():
                         boolean = 0
         return types1, types2, types3
 
-    def run(self, use_backup, path, use_svm, cross_val = False, j = 0):
+    def run(self, use_backup, path, use_svm = False, cross_val = False, j = 0):
         types1, types2, types3 = self.create_types()
         
         punctuation_and_numbers = ['– ','(', ')', '?', ':', ';', ',', '.', '!', '/', '"', '\'', '’','*', '$', '0', '1', '2', '3',

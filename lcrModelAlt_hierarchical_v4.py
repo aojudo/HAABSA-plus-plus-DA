@@ -95,6 +95,8 @@ def lcr_rot(input_fw, input_bw, sen_len_fw, sen_len_bw, target, sen_len_tr, keep
 
 def main(train_path, test_path, accuracyOnt, test_size, remaining_size, learning_rate=FLAGS.learning_rate, keep_prob=FLAGS.keep_prob1, momentum=FLAGS.momentum, l2=FLAGS.l2_reg, batch_size=FLAGS.batch_size):
     print_config()
+    augmenter = Augmentation(FLAGS.EDA_type, need_mixup=True)
+    
     with tf.device('/GPU:'+FLAGS.gpu_id):
         word_id_mapping, w2v = load_w2v(FLAGS.embedding_path, FLAGS.embedding_dim)
         word_embedding = tf.constant(w2v, name='word_embedding')

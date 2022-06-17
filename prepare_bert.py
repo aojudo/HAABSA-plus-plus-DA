@@ -50,7 +50,7 @@ print('voca_bert_sep: ' + str(len(voca_bert_sep)))
 counter = 0
 unique_voca_bert = []
 with open(FLAGS.temp_bert_dir + 'BERT_base_' + str(FLAGS.year) + 'embedding.txt') as bert_emb:
-    with open('data/program_generated_data/' + str(FLAGS.embedding_type) + '_' + str(FLAGS.year) + '_' + str(FLAGS.embedding_dim) + '.txt', 'w') as out_file:
+    with open(FLAGS.embedding_path, 'w') as out_file:
         for line in bert_emb:
             word = line.split(' ')[0]
             counter += 1
@@ -81,7 +81,7 @@ print('unique_voca_bert_sep: ' + str(len(unique_voca_bert_sep)))
 
 # make a matrix (three vectors) containing for each word in bert-tokeniser 
 # style the word_id (x_word), sentence_id (x_sent), target boolean, (x_targ)
-lines = open(FLAGS.raw_data_dir+'/raw_data'+str(FLAGS.year)+'.txt').readlines()
+lines = open(FLAGS.raw_data_file).readlines()
 index = 0
 index_sep = 0
 x_word = []
@@ -143,7 +143,7 @@ for filenr in range(1, 8):
                     dollar_count = 0
                     sentence_senten_unique += unique_voca_bert_sep[u] + ' '
 
-    lines = open(FLAGS.raw_data_dir+'/raw_data'+str(FLAGS.year)+'.txt').readlines()
+    lines = open(FLAGS.raw_data_file).readlines()
     index = 0
     index_sep = 0
     x_word = []
@@ -236,12 +236,13 @@ if FLAGS.year==2015 or FLAGS.year==2016:
     
     # split in train and test file
     lines_all_data = open(FLAGS.temp_bert_dir + str(FLAGS.year) + '_BERT_Data_All.txt').readlines()
-    with open('data/program_generated_data/'+str(FLAGS.embedding_dim) +'traindata'+str(FLAGS.year) +'BERT.txt','w') as out_train:
+    
+    with open(FLAGS.train_path,'w') as out_train:
         for j in range(0, train_lines):
             out_train.write(lines_all_data[j])
     print ('Succesfully created BERT train file at data/program_generated_data/'+str(FLAGS.embedding_dim) +'traindata'+str(FLAGS.year) +'BERT.txt')
-        
-    with open('data/program_generated_data/'+str(FLAGS.embedding_dim) +'testdata'+str(FLAGS.year) +'BERT.txt','w') as out_test:
+    
+    with open(FLAGS.test_path,'w') as out_test:
         for k in range(train_lines, len(lines_all_data)):
             out_test.write(lines_all_data[k])
     print ('Succesfully created BERT test file at data/program_generated_data/'+str(FLAGS.embedding_dim) +'testdata'+str(FLAGS.year) +'BERT.txt')    
