@@ -92,8 +92,8 @@ def lcr_rot(input_fw, input_bw, sen_len_fw, sen_len_bw, target, sen_len_tr, keep
     prob = softmax_layer(outputs_fin, 8 * FLAGS.n_hidden, FLAGS.random_base, keep_prob2, l2, FLAGS.n_class)
     return prob, att_l, att_r, att_t_l, att_t_r
 
-
-def main(train_path, test_path, accuracyOnt, test_size, remaining_size, learning_rate=FLAGS.learning_rate, keep_prob=FLAGS.keep_prob1, momentum=FLAGS.momentum, l2=FLAGS.l2_reg, batch_size=FLAGS.batch_size):
+# TODO: MAKE SURE FUNCTION INPUTS ARE USED INSTEAD OF FLAGS VARIABLES INSIDE THIS FUNCTION
+def main(train_path, test_path, accuracyOnt, test_size, remaining_size, augment_data, augmentation_file_path, ct, learning_rate=FLAGS.learning_rate, keep_prob=FLAGS.keep_prob1, momentum=FLAGS.momentum, l2=FLAGS.l2_reg, batch_size=FLAGS.batch_size):
     print_config()
     augmenter = Augmentation(FLAGS.EDA_type, need_mixup=True)
     
@@ -133,13 +133,14 @@ def main(train_path, test_path, accuracyOnt, test_size, remaining_size, learning
         title = '-d1-{}d2-{}b-{}r-{}l2-{}sen-{}dim-{}h-{}c-{}'.format(
             FLAGS.keep_prob1,
             FLAGS.keep_prob2,
-            batch_size,
+            FLAGS.batch_size,
             FLAGS.learning_rate,
             FLAGS.l2_reg,
             FLAGS.max_sentence_len,
             FLAGS.embedding_dim,
             FLAGS.n_hidden,
-            FLAGS.n_class
+            FLAGS.n_class,
+            FLAGS.da_type
         )
 
     config = tf.ConfigProto(allow_soft_placement=True)
@@ -164,17 +165,20 @@ def main(train_path, test_path, accuracyOnt, test_size, remaining_size, learning
         else:
             is_r = False
         
-        ####################################################this is where Tomas code starts to differ
+        #################################################### this is where Tomas code starts to differ
         
-        tr_x, tr_sen_len, tr_x_bw, tr_sen_len_bw, tr_y, tr_target_word, tr_tar_len, _, _, _ = load_inputs_twitter(
+        len_non_augmented, tr_x, tr_sen_len, tr_x_bw, tr_sen_len_bw, tr_y, tr_target_word, tr_tar_len, _, _, _ = load_inputs_twitter(
             train_path,
             word_id_mapping,
             FLAGS.max_sentence_len,
             'TC',
             is_r,
-            FLAGS.max_target_len
+            FLAGS.max_target_len,
+            augment_data=augment_data,
+            augmentation_file_path=augmentation_file_path            
         )
-        te_x, te_sen_len, te_x_bw, te_sen_len_bw, te_y, te_target_word, te_tar_len, _, _, _ = load_inputs_twitter(
+        
+        _, te_x, te_sen_len, te_x_bw, te_sen_len_bw, te_y, te_target_word, te_tar_len, _, _, _ = load_inputs_twitter(
             test_path,
             word_id_mapping,
             FLAGS.max_sentence_len,
@@ -182,6 +186,21 @@ def main(train_path, test_path, accuracyOnt, test_size, remaining_size, learning
             is_r,
             FLAGS.max_target_len
         )
+        
+        ##################################### CAN PROBABLY DELETE THIS CODE AS IM NOT USING MIXUP
+        max_records_mixup = len(tr_x) if FLAGS.mixup_on_augmentations > 0 else len_non_augmented
+        if augment_data and FLAGS.use_word_mixup > 0:
+            print("The amount of records on which mixup is applied: {}".format(max_records_mixup))
+            rand_mixup = np.array(range(max_records_mixup-1))
+            print("applying mixup...")
+            for _ in range(FLAGS.use_word_mixup):
+                random.shuffle(rand_mixup)
+                for i, j in tqdm(zip(*[iter(rand_mixup)]*2)):
+                    first = (tr_x[i], tr_sen_len[i], tr_x_bw[i], tr_sen_len_bw[i], tr_y[i], tr_target_word[i], tr_tar_len[i])
+                    second = (tr_x[j], tr_sen_len[j], tr_x_bw[j], tr_sen_len_bw[j], tr_y[j], tr_target_word[j], tr_tar_len[j])
+                    augmenter.word_mixup(first, second)
+            print("Word mixup embeddings: {}".format(augmenter.counter))    
+        ##################################### END CAN PROBABLY DELETE THIS CODE
 
         def get_batch_data(x_f, sen_len_f, x_b, sen_len_b, yi, target, tl, data_batch_size, kp1, kp2, is_shuffle=True):
             for index in batch_index(len(yi), data_batch_size, 1, is_shuffle):
@@ -240,7 +259,7 @@ def main(train_path, test_path, accuracyOnt, test_size, remaining_size, learning
                 acc += _acc
                 cost += _loss * num
                 cnt += num
-            print('all samples={}, correct prediction={}'.format(cnt, acc)) # uncomment this line to see progress during running
+            print('all samples={}, correct prediction={}'.format(cnt, acc)) # comment OUT this line to hide progress during running
             trainacc = trainacc / traincnt
             acc = acc / cnt
             totalacc = ((acc * remaining_size) + (accuracyOnt * (test_size - remaining_size))) / test_size
@@ -249,6 +268,9 @@ def main(train_path, test_path, accuracyOnt, test_size, remaining_size, learning
             summary = sess.run(test_summary_op, feed_dict={test_loss: cost, test_acc: acc})
             test_summary_writer.add_summary(summary, step)
             if acc > max_acc:
+                max_trainacc = trainacc # added from tomas' code
+                max_totalacc = totalacc # added from tomas' code
+                iteration = i # added from tomas' code
                 max_acc = acc
                 max_fw = fw
                 max_bw = bw
@@ -264,22 +286,49 @@ def main(train_path, test_path, accuracyOnt, test_size, remaining_size, learning
         print('P:', P, 'avg=', sum(P) / FLAGS.n_class)
         print('R:', R, 'avg=', sum(R) / FLAGS.n_class)
         print('F1:', F1, 'avg=', sum(F1) / FLAGS.n_class)
+        
+        ################################### OLAF'S WAY OF SAVING RESULTS
+        # fp = open(FLAGS.prob_file, 'w')
+        # for item in max_prob:
+            # fp.write(' '.join([str(it) for it in item]) + '\n')
+        # fp = open(FLAGS.prob_file + '_fw', 'w')
+        # for y1, y2, ws in zip(max_ty, max_py, max_fw):
+            # fp.write(str(y1) + ' ' + str(y2) + ' ' + ' '.join([str(w) for w in ws[0]]) + '\n')
+        # fp = open(FLAGS.prob_file + '_bw', 'w')
+        # for y1, y2, ws in zip(max_ty, max_py, max_bw):
+            # fp.write(str(y1) + ' ' + str(y2) + ' ' + ' '.join([str(w) for w in ws[0]]) + '\n')
+        # fp = open(FLAGS.prob_file + '_tl', 'w')
+        # for y1, y2, ws in zip(max_ty, max_py, max_tl):
+            # fp.write(str(y1) + ' ' + str(y2) + ' ' + ' '.join([str(w) for w in ws[0]]) + '\n')
+        # fp = open(FLAGS.prob_file + '_tr', 'w')
+        # for y1, y2, ws in zip(max_ty, max_py, max_tr):
+            # fp.write(str(y1) + ' ' + str(y2) + ' ' + ' '.join([str(w) for w in ws[0]]) + '\n')
+        ################################### END OLAF'S WAY OF SAVING RESULTS
 
-        fp = open(FLAGS.prob_file, 'w')
-        for item in max_prob:
-            fp.write(' '.join([str(it) for it in item]) + '\n')
-        fp = open(FLAGS.prob_file + '_fw', 'w')
-        for y1, y2, ws in zip(max_ty, max_py, max_fw):
-            fp.write(str(y1) + ' ' + str(y2) + ' ' + ' '.join([str(w) for w in ws[0]]) + '\n')
-        fp = open(FLAGS.prob_file + '_bw', 'w')
-        for y1, y2, ws in zip(max_ty, max_py, max_bw):
-            fp.write(str(y1) + ' ' + str(y2) + ' ' + ' '.join([str(w) for w in ws[0]]) + '\n')
-        fp = open(FLAGS.prob_file + '_tl', 'w')
-        for y1, y2, ws in zip(max_ty, max_py, max_tl):
-            fp.write(str(y1) + ' ' + str(y2) + ' ' + ' '.join([str(w) for w in ws[0]]) + '\n')
-        fp = open(FLAGS.prob_file + '_tr', 'w')
-        for y1, y2, ws in zip(max_ty, max_py, max_tr):
-            fp.write(str(y1) + ' ' + str(y2) + ' ' + ' '.join([str(w) for w in ws[0]]) + '\n')
+        ################################### TOMAS' WAY OF SAVING RESULTS
+        keys_to_save = 'year EDA_type EDA_deletion EDA_replacement original_multiplier EDA_insertion EDA_swap EDA_pct backtranslation_langs use_word_mixup mixup_beta mixup_on_augmentations'.split(' ')
+        try:
+            df = pd.read_json(FLAGS.results_file)
+            print('adding outcome to {}'.format(FLAGS.results_file))
+        except ValueError:
+            print('did not find an existing result file, creating a new one...')
+            df = pd.DataFrame([])
+        new_experiment = {}
+        for k, v in sorted(FLAGS.flag_values_dict().items()):
+            if k in keys_to_save:
+                new_experiment[k] = v
+        new_experiment['in_sample'] = max_trainacc
+        new_experiment['out_of_sample'] = max_acc
+        new_experiment['ontology_acc'] = accuracyOnt
+        new_experiment['total_acc'] = max_totalacc
+        new_experiment['at_iteration'] = iteration
+        new_experiment['#of_test'] = cnt
+        new_experiment['#of_train'] = len(tr_x)
+        new_experiment['pre_embed_aug'] = ct
+        new_experiment['post_embed_aug'] = augmenter.counter
+        df = df.append(new_experiment, ignore_index=True)
+        df.to_json(FLAGS.results_file)
+        ################################### END TOMAS' WAY OF SAVING RESULTS
 
         print('Optimization Finished! Max acc={}'.format(max_acc))
 

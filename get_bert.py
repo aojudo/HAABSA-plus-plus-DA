@@ -7,11 +7,7 @@
 # https://github.com/stefanvanberkum/CD-ABSC. The BERT model and the modeling
 # and tokenization modules come from the original BERT code: 
 # https://github.com/google-research/bert#pre-trained-models.
-#
-# Van Berkum, S., Van Megen, S., Savelkoul, M., Weterman, P., & Frasincar, F. 
-# (2021). Fine-tuning for cross-domain aspect-based sentiment classification. 
-# IEEE/WIC/ACM International Conference on Web Intelligence (WI-IAT 2021), 
-# 524–531. https://doi.org/10.1145/3486622.3494003
+
 
 from __future__ import absolute_import
 from __future__ import division

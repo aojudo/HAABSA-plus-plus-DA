@@ -1,3 +1,11 @@
+# Several utility functions used in this project.. 
+#
+# https://github.com/aojudo/HAABSA-plus-plus-DA
+#
+# Adapted from Van Berkum et al. (2021) https://github.com/stefanvanberkum/CD-ABSC and
+# Liesting et al. (2020) https://github.com/tomasLiesting/HAABSADA.
+
+
 #!/usr/bin/env python
 # encoding: utf-8
 

@@ -1,15 +1,9 @@
-# Prepares BERT train and test files with embeddings. Get raw data and BERT embedding first from raw_data and getBERT
-# (jupyter notebook files).
+# Write useful comment
 #
-# https://github.com/stefanvanberkum/CD-ABSC
+# https://github.com/aojudo/HAABSA-plus-plus-DA
 #
-# Adapted from Trusca, Wassenberg, Frasincar and Dekker (2020).
-# https://github.com/mtrusca/HAABSA_PLUS_PLUS
-#
-# Truşcǎ M.M., Wassenberg D., Frasincar F., Dekker R. (2020) A Hybrid Approach for Aspect-Based Sentiment Analysis Using
-# Deep Contextual Word Embeddings and Hierarchical Attention. In: Bielikova M., Mikkonen T., Pautasso C. (eds) Web
-# Engineering. ICWE 2020. Lecture Notes in Computer Science, vol 12128. Springer, Cham.
-# https://doi.org/10.1007/978-3-030-50578-3_25
+# Adapted from Van Berkum et al. (2021) https://github.com/stefanvanberkum/CD-ABSC.
+
 
 # import parameter configuration and data paths
 from config import *

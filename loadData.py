@@ -1,3 +1,10 @@
+# Write useful comment
+#
+# https://github.com/aojudo/HAABSA-plus-plus-DA
+#
+# Adapted from Van Berkum et al. (2021) https://github.com/stefanvanberkum/CD-ABSC.
+
+
 from dataReader2016 import read_data_2016
 from sklearn.model_selection import StratifiedKFold
 import numpy as np
