@@ -163,7 +163,9 @@ def main(train_path, test_path, accuracyOnt, test_size, remaining_size, learning
             is_r = True
         else:
             is_r = False
-
+        
+        ####################################################this is where Tomas code starts to differ
+        
         tr_x, tr_sen_len, tr_x_bw, tr_sen_len_bw, tr_y, tr_target_word, tr_tar_len, _, _, _ = load_inputs_twitter(
             train_path,
             word_id_mapping,
