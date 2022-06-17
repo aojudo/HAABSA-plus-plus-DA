@@ -27,14 +27,16 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 # main function
 def main(_):
-    loadData        = False        # only for non-contextualised word embeddings.
-                                    # Use prepareBERT for BERT (and BERT_Large) and prepareELMo for ELMo
-    useOntology     = False        # When run together with runLCRROTALT, the two-step method is used
-    weightanalysis  = False
-    runLCRROTALT_v4 = True
+    loadData        = False # only for non-contextualised word embeddings, use prepareBERT for BERT (and BERT_Large) and prepareELMo for ELMo
+    augment_data    = True # load data must be true to augment    
+    useOntology     = False # when used together with runLCRROTALT_v4, the two-step method is used
+    weightanalysis  = False # what is this used for?
+    runLCRROTALT_v4 = True # when used together with useOntology, the two-step method is used
     
     # retrieve data and wordembeddings
-    train_size, test_size, train_polarity_vector, test_polarity_vector = loadDataAndEmbeddings(FLAGS, loadData)
+    
+    #TODO: change function inputs and output to match new version
+    train_size, test_size, train_polarity_vector, test_polarity_vector, ct = loadDataAndEmbeddings(FLAGS, loadData, augment_data)
     print(test_size)
 
     # only run ontology if specified
@@ -55,7 +57,7 @@ def main(_):
         accuracyOnt = 0.87
 
     if runLCRROTALT_v4 == True:
-       _, pred2, fw2, bw2, tl2, tr2 = lcrModelAlt_hierarchical_v4.main(FLAGS.train_path, test, accuracyOnt, test_size, remaining_size)
+       _, pred2, fw2, bw2, tl2, tr2 = lcrModelAlt_hierarchical_v4.main(FLAGS.train_path, test, accuracyOnt, test_size, remaining_size, augment_data, FLAGS.augmentation_file_path, ct)
        tf.reset_default_graph()
 
     print('Finished program succesfully')
