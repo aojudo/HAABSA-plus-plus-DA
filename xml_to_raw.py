@@ -53,7 +53,7 @@ def _get_data_tuple(sptoks, asp_termIn, label):
     :param label:
     :return:
     '''
-    #find the ids of aspect term
+    # find the ids of aspect term
     aspect_is = []
     asp_term = ' '.join(sp for sp in asp_termIn).lower()
     for _i, group in enumerate(window(sptoks, len(asp_termIn))):
@@ -111,17 +111,28 @@ def read_xml(in_file, source_count, source_word2idx, target_count, target_phrase
     tree = ET.parse(in_file)
     root = tree.getroot()
 
+    # open file to write raw data to and 
     out_f = open(out_file, 'w')
-
-    # Save all words in source_words (includes duplicates).
-    # Save all aspects in target_words (includes duplicates).
-    # Save max sentence length and max targets length.
+    
+    if augment_data:
+        if os.path.isfile(in_file):
+            augm_f = io.open(augmentation_file, "w", encoding='utf-8') if augment_data else None #changed condition compared to tomas' code
+        else:    
+            raise Exception('Trying to augment data, but no file specified to save to. Either specify file or don\'t use data augmentation.')
+    else:
+        augm_f = None
+    
+    # save all words in source_words (includes duplicates)
+    # save all aspects in target_words (includes duplicates)
+    # save max sentence length and max targets length
     source_words, target_words, max_sent_len, max_target_len = [], [], 0, 0
     target_phrases = []
-
-    # intialise conflict count
-    count_confl = 0
     
+    augmenter = data_augmentation.Augmentation(eda_type=FLAGS.EDA_type)
+    augmented_sentences = []
+    
+    count_confl = 0
+    category_counter = []
     for sentence in root.iter('sentence'):
         sent = sentence.find('text').text
         sentenceNew = re.sub(' +', ' ', sent)
@@ -139,11 +150,69 @@ def read_xml(in_file, source_count, source_word2idx, target_count, target_phrase
                 if asp != 'NULL':
                     asp_new = re.sub(' +', ' ', asp)
                     t_sptoks = nltk.word_tokenize(asp_new)
+                    category_counter.append(opinion.get('category'))
                     for sp in t_sptoks:
                         target_words.extend([''.join(sp).lower()])
                     target_phrases.append(' '.join(sp for sp in t_sptoks).lower())
                     if len(t_sptoks) > max_target_len:
                         max_target_len = len(t_sptoks)
+
+####################################### DIFFERENT CODE TOMAS BEGIN
+
+    counted_cats = Counter(category_counter)
+    print('category distribution for {} : {}'.format(file_name, counted_cats))
+    if augment_data:
+        category_sorter = {}  # for random swap of targets between sentences
+        for i in counted_cats.keys():
+            category_sorter[i] = []  # initialize as empty list
+        print('starting data augmentation')
+        for sentence in tqdm(root.iter('sentence')):
+            sent = sentence.find('text').text
+            sentenceNew = re.sub(' +', ' ', sent)
+            for opinions in sentence.iter('Opinions'):
+                for opinion in opinions.findall('Opinion'):
+                    asp = opinion.get('target')
+                    category = opinion.get('category')
+                    polarity = opinion.get('polarity')
+                    if asp != 'NULL':
+                        asp_new = re.sub(' +', ' ', asp)
+                        category_sorter[category].append(
+                            {'sentence': sentenceNew, 'aspect': asp_new, 'polarity': polarity})
+                        aug_sent, aug_asp = augmenter.augment(sentenceNew, asp_new)
+                        aug_tok = nltk.word_tokenize(aug_asp)
+                        for sp in aug_tok:
+                            target_words.extend([''.join(sp).lower()])
+                        for a_s in aug_sent:
+                            sptoks = nltk.word_tokenize(a_s)
+                            for sp in sptoks:
+                                source_words.extend([''.join(sp).lower()])
+                            augmented_sentences.append({'sentence': a_s,
+                                                        'aspect': asp_new,
+                                                        'category': category,
+                                                        'polarity': polarity})
+        for category in category_sorter.keys():
+            if FLAGS.EDA_swap == 0 or FLAGS.EDA_type == 'original':  # we don't swap
+                break
+            sentences_same_cat = category_sorter[category]  # all sentences with the same category
+            indices = np.array(range(len(sentences_same_cat)-1))
+            random.shuffle(indices)  # random index used to shuffle
+            for _ in range(FLAGS.EDA_swap):
+                for i, j in tqdm(zip(*[iter(indices)] * 2)):
+                    adder = 0
+                    while sentences_same_cat[i].get('aspect') == sentences_same_cat[(j + adder) % len(indices)].get('aspect') and adder<100:  # happens more than you think
+                        adder += 1
+                    sent1, sent2 = augmenter.swap_targets(sentences_same_cat[i], sentences_same_cat[(j + adder) % len(indices)])
+                    for sent in [sent1, sent2]:
+                        sptoks = nltk.word_tokenize(sent['sentence'])
+                        for sp in sptoks:
+                            source_words.extend([''.join(sp).lower()])
+                    augmented_sentences.extend([sent1, sent2])
+
+            random.shuffle(sentences_same_cat)
+            y = [sentences_same_cat[i * 2: (i + 1) * 2] for i in range(5)]
+
+####################################### DIFFERENT CODE TOMAS END
+
     if len(source_count) == 0:
         source_count.append(['<pad>', 0])
     source_count.extend(Counter(source_words + target_words).most_common())
@@ -159,7 +228,7 @@ def read_xml(in_file, source_count, source_word2idx, target_count, target_phrase
 
     source_data, source_loc_data, target_data, target_label = list(), list(), list(), list()
 
-    # Collect output data (match with source_word2idx) and write to .txt file.
+    # collect output data (match with source_word2idx) and write to .txt file
     for sentence in root.iter('sentence'):
         sent = sentence.find('text').text
         sentence_new = re.sub(' +', ' ', sent)
@@ -172,9 +241,9 @@ def read_xml(in_file, source_count, source_word2idx, target_count, target_phrase
                 for opinion in opinions.findall('Opinion'):
                     if opinion.get('polarity') == 'conflict': continue
                     asp = opinion.get('target')
-                    if asp != 'NULL': #removes implicit targets
-                        aspNew = re.sub(' +', ' ', asp)
-                        t_sptoks = nltk.word_tokenize(aspNew)
+                    if asp != 'NULL': # removes implicit targets
+                        asp_new = re.sub(' +', ' ', asp)
+                        t_sptoks = nltk.word_tokenize(asp_new)
                         source_data.append(idx)
                         outputtext = ' '.join(sp for sp in sptoks).lower()
                         outputtarget = ' '.join(sp for sp in t_sptoks).lower()
@@ -191,51 +260,90 @@ def read_xml(in_file, source_count, source_word2idx, target_count, target_phrase
                         target_label.append(lab)
                         out_f.write(str(lab))
                         out_f.write('\n')
-    
     out_f.close()
+    
+    ####################################### DIFFERENT CODE TOMAS BEGIN
+    
+    # write augmented sentences
+    if augment_data:
+        for aug_sen in augmented_sentences:
+            sptoks = nltk.word_tokenize(aug_sen['sentence'])
+            if len(sptoks) != 0:
+                idx = []
+                for sptok in sptoks:
+                    try:
+                        idx.append(source_word2idx[''.join(sptok).lower()])
+                    except KeyError:
+                        raise KeyError('Word {} is not found in the word2index file'.format(sptok))
+                asp = aug_sen['aspect']
+                if asp != 'NULL':  # removes implicit targets
+                    asp_new = re.sub(' +', ' ', asp)
+                    t_sptoks = nltk.word_tokenize(asp_new)
+                    source_data.append(idx)
+                    outputtext = ' '.join(sp for sp in sptoks).lower()
+                    outputtarget = ' '.join(sp for sp in t_sptoks).lower()
+                    outputtext = outputtext.replace(outputtarget, '$T$')
+                    augm_f.write(outputtext)
+                    augm_f.write("\n")
+                    augm_f.write(outputtarget)
+                    augm_f.write("\n")
+                    pos_info, lab = _get_data_tuple(sptoks, t_sptoks, aug_sen.get('polarity'))
+                    pos_info = [(1 - (i / len(idx))) for i in pos_info]
+                    source_loc_data.append(pos_info)
+                    targetdata = ' '.join(sp for sp in t_sptoks).lower()
+                    target_data.append(target_phrase2idx[targetdata])
+                    target_label.append(lab)
+                    augm_f.write(str(lab))
+                    augm_f.write("\n")
+        augm_f.close()
+    
+    ####################################### DIFFERENT CODE TOMAS END
+    
     print('Read %s aspects from %s' % (len(source_data), in_file))
     print('Conflicts: ' + str(count_confl))
-    return source_data, source_loc_data, target_data, target_label, max_sent_len, source_loc_data, max_target_len
+    print("These are the augmentations that are done for ".format(in_file), augmenter.counter)
+    ct = augmenter.counter    
+    return [source_data, source_loc_data, target_data, target_label, max_sent_len, source_loc_data, max_target_len], ct
 
 
-def main():
-    '''
-    Converts XML train and test data to raw data and saves three files: raw train, raw test and raw train+test.
-    :return:
-    '''
-    # original xml train and test files
-    train_xml = FLAGS.train_data
-    test_xml = FLAGS.test_data
+# def main():
+    # '''
+    # Converts XML train and test data to raw data and saves three files: raw train, raw test and raw train+test.
+    # :return:
+    # '''
+    ## original xml train and test files
+    # train_xml = FLAGS.train_data
+    # test_xml = FLAGS.test_data
     
-    # locations for raw files
-    train_raw = FLAGS.raw_data_dir+'/raw_data'+str(FLAGS.year)+'_train.txt'
-    test_raw = FLAGS.raw_data_dir+'/raw_data'+str(FLAGS.year)+'_test.txt'
-    train_test_raw = FLAGS.raw_data_file
+    ## locations for raw files
+    # train_raw = FLAGS.raw_data_dir+'/raw_data'+str(FLAGS.year)+'_train.txt'
+    # test_raw = FLAGS.raw_data_dir+'/raw_data'+str(FLAGS.year)+'_test.txt'
+    # train_test_raw = FLAGS.raw_data_file
    
-    # check whether files exist already, else create raw data files
-    if os.path.isfile(train_raw):
-        raise Exception('File '+train_raw+' already exists. Delete file and run again.')
-    elif os.path.isfile(test_raw):
-        raise Exception('File '+test_raw+' already exists. Delete file and run again.')
-    elif os.path.isfile(train_test_raw):
-        raise Exception('File '+train_test_raw+' already exists. Delete file and run again.')       
-    else:
-        with open(train_raw, 'w') as out:
-            out.write('')
-        with open(test_raw, 'w') as out:
-            out.write('')
-        read_xml(in_file=train_xml, source_count=[], source_word2idx={}, target_count=[], target_phrase2idx={},
-                    out_file=train_raw)
-        read_xml(in_file=test_xml, source_count=[], source_word2idx={}, target_count=[], target_phrase2idx={},
-                    out_file=test_raw)
+    ## check whether files exist already, else create raw data files
+    # if os.path.isfile(train_raw):
+        # raise Exception('File '+train_raw+' already exists. Delete file and run again.')
+    # elif os.path.isfile(test_raw):
+        # raise Exception('File '+test_raw+' already exists. Delete file and run again.')
+    # elif os.path.isfile(train_test_raw):
+        # raise Exception('File '+train_test_raw+' already exists. Delete file and run again.')       
+    # else:
+        # with open(train_raw, 'w') as out:
+            # out.write('')
+        # with open(test_raw, 'w') as out:
+            # out.write('')
+        # read_xml(in_file=train_xml, source_count=[], source_word2idx={}, target_count=[], target_phrase2idx={},
+                    # out_file=train_raw)
+        # read_xml(in_file=test_xml, source_count=[], source_word2idx={}, target_count=[], target_phrase2idx={},
+                    # out_file=test_raw)
                     
-    # merge raw train and test files into one file
-    with open(train_test_raw, 'wb') as wfd:
-        for f in [train_raw, test_raw]:
-            with open(f,'rb') as fd:
-                shutil.copyfileobj(fd, wfd)
+    ## merge raw train and test files into one file
+    # with open(train_test_raw, 'wb') as wfd:
+        # for f in [train_raw, test_raw]:
+            # with open(f,'rb') as fd:
+                # shutil.copyfileobj(fd, wfd)
 
 
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+    # main()
     

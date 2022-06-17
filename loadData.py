@@ -18,41 +18,74 @@ def loadDataAndEmbeddings(config,loadData):
 
 ################################ should be changed to: if loadData=true: { if SLAGS.da-method=='da-method': { prepare datasets (xml_to_raw), get BERT embedings (get_bert), prepare BERT embeddings (prepare_bert) } } else: { ...
     if loadData == True:
-        source_count, target_count = [], []
-        source_word2idx, target_phrase2idx = {}, {}
-
-        print('reading training data...')
-        train_data = read_data_2016(FLAGS.train_data, source_count, source_word2idx, target_count, target_phrase2idx, FLAGS.train_path)
-        print('reading test data...')
-        test_data = read_data_2016(FLAGS.test_data, source_count, source_word2idx, target_count, target_phrase2idx, FLAGS.test_path)
-
-        ################## replace by: get_bert and prepare_bert
-        wt = np.random.normal(0, 0.05, [len(source_word2idx), 300])
-        word_embed = {}
-        count = 0.0
-        with open(FLAGS.pretrain_file, 'r',encoding='utf8') as f:
-            for line in f:
-                content = line.strip().split()
-                if content[0] in source_word2idx:
-                    wt[source_word2idx[content[0]]] = np.array(list(map(float, content[1:])))
-                    count += 1
-                    
-        print('finished embedding context vectors...')
+        # locations for raw files
+        train_raw = FLAGS.raw_data_dir+'/raw_data'+str(FLAGS.year)+'_train.txt'
+        test_raw = FLAGS.raw_data_dir+'/raw_data'+str(FLAGS.year)+'_test.txt'
+        train_test_raw = FLAGS.raw_data_file
         
-        # already happens in my prepare_bert
-        #print data to txt file
-        outF= open(FLAGS.embedding_path, 'w')
-        for i, word in enumerate(source_word2idx):
-            outF.write(word)
-            outF.write(' ')
-            outF.write(' '.join(str(w) for w in wt[i]))
-            outF.write('\n')
-        outF.close()
-        print((len(source_word2idx)-count)/len(source_word2idx)*100)
-        ################## end replace by
-        
-        # probably not possible with my xml_to_raw implementation, so use code in following else block
-        return train_data[0], test_data[0], train_data[4], test_data[4]
+        # check whether files exist already, else create raw data files
+        if os.path.isfile(train_raw):
+            raise Exception('File '+train_raw+' already exists. Delete file and run again.')
+        elif os.path.isfile(test_raw):
+            raise Exception('File '+test_raw+' already exists. Delete file and run again.')
+        elif os.path.isfile(train_test_raw):
+            raise Exception('File '+train_test_raw+' already exists. Delete file and run again.')       
+        else:
+            # convert xml data to raw text data. If augment_data==True, also augment data
+            source_count, target_count = [], []
+            source_word2idx, target_phrase2idx = {}, {}
+            print('reading training data...')
+            train_data, ct = read_xml(in_file=FLAGS.train_data,
+                                      source_count,
+                                      source_word2idx,
+                                      target_count,
+                                      target_phrase2idx,
+                                      out_file=train_raw,
+                                      augment_data,
+                                      FLAGS.augmentation_file_path)
+            print('reading test data...')
+            test_data, _ = read_xml(in_file=FLAGS.test_data,
+                                    source_count,
+                                    source_word2idx,
+                                    target_count,
+                                    target_phrase2idx,
+                                    out_file=test_raw,
+                                    False,
+                                    None)
+
+            # merge raw train and test files into one file which is used for retrieving BERT embedings
+            with open(train_test_raw, 'wb') as wfd:
+                for f in [train_raw, test_raw]:
+                    with open(f,'rb') as fd:
+                        shutil.copyfileobj(fd, wfd)
+
+            ################## replace by: get_bert and prepare_bert
+            wt = np.random.normal(0, 0.05, [len(source_word2idx), 300])
+            word_embed = {}
+            count = 0.0
+            with open(FLAGS.pretrain_file, 'r',encoding='utf8') as f:
+                for line in f:
+                    content = line.strip().split()
+                    if content[0] in source_word2idx:
+                        wt[source_word2idx[content[0]]] = np.array(list(map(float, content[1:])))
+                        count += 1
+                        
+            print('finished embedding context vectors...')
+            
+            # already happens in my prepare_bert
+            #print data to txt file
+            outF= open(FLAGS.embedding_path, 'w')
+            for i, word in enumerate(source_word2idx):
+                outF.write(word)
+                outF.write(' ')
+                outF.write(' '.join(str(w) for w in wt[i]))
+                outF.write('\n')
+            outF.close()
+            print((len(source_word2idx)-count)/len(source_word2idx)*100)
+            ################## end replace by
+            
+            # probably not possible with my xml_to_raw implementation, so use code in following else block
+            return train_data[0], test_data[0], train_data[4], test_data[4]
 ############################### end should be changed to
 
     # propably, this should happen either way. IE, else should be removed

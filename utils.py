@@ -133,7 +133,7 @@ def load_inputs_twitter(input_file, word_id_file, sentence_len, type_='', is_r=T
         aug_lines = io.open(augmentation_file_path, 'r', encoding='utf-8').readlines()
         lines.extend(aug_lines)
     
-        for i in range(0, len(lines), 3):
+    for i in range(0, len(lines), 3):
         # targets
         words = lines[i + 1].lower().split()
         target = words
