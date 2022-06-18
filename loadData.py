@@ -12,7 +12,7 @@ import random
 import os
 
 
-def loadDataAndEmbeddings(config,loadData):
+def loadDataAndEmbeddings(config, loadData, augment_data):
 
     FLAGS = config
 
@@ -20,6 +20,7 @@ def loadDataAndEmbeddings(config,loadData):
     if loadData == True:
         # locations for raw files
         train_raw = FLAGS.raw_data_dir+'/raw_data'+str(FLAGS.year)+'_train.txt'
+        augment_raw = FLAGS.augmentation_file_path
         test_raw = FLAGS.raw_data_dir+'/raw_data'+str(FLAGS.year)+'_test.txt'
         train_test_raw = FLAGS.raw_data_file
         
@@ -42,7 +43,7 @@ def loadDataAndEmbeddings(config,loadData):
                                       target_phrase2idx,
                                       out_file=train_raw,
                                       augment_data,
-                                      FLAGS.augmentation_file_path)
+                                      augmentation_file=augment_raw)
             print('reading test data...')
             test_data, _ = read_xml(in_file=FLAGS.test_data,
                                     source_count,
@@ -52,7 +53,29 @@ def loadDataAndEmbeddings(config,loadData):
                                     out_file=test_raw,
                                     False,
                                     None)
-
+            
+            # in Tomas' code, combining original train data with artificial data happens inside load_inputs_twitter
+            # function in utils.py, which is called inside lcrModel....py. Because I need to combine the data before
+            # getting the BERT embeddings, I combine the data here and split it again into train and test data
+            # inside prepare_bert.py
+            
+            # available: raw train, raw augmented and raw test data
+            # required: raw (train + augm) for prepare_bert, raw test for prepare_bert and raw (train + augm + test) for get_bert
+            # how to get the lengths of these files?
+            
+            
+            
+            non_augmented = int(len(lines)/3)
+            if augment_data:
+                lines *= FLAGS.original_multiplier
+                aug_lines = io.open(augmentation_file_path, 'r', encoding='utf-8').readlines()
+                lines.extend(aug_lines)            
+            
+            # if data augmentation is used, merge augmented raw data into training data
+            if augment_data:
+                
+            
+            
             # merge raw train and test files into one file which is used for retrieving BERT embedings
             with open(train_test_raw, 'wb') as wfd:
                 for f in [train_raw, test_raw]:
@@ -60,6 +83,14 @@ def loadDataAndEmbeddings(config,loadData):
                         shutil.copyfileobj(fd, wfd)
 
             ################## replace by: get_bert and prepare_bert
+            
+            #### something like: if 
+            
+            
+            # create embeddings for every token in the train and test data
+            print('creating embeddings for every token in the train and test data...')
+            
+            
             wt = np.random.normal(0, 0.05, [len(source_word2idx), 300])
             word_embed = {}
             count = 0.0
