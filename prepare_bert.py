@@ -9,7 +9,7 @@
 from config import *
 
 
-def main()
+def main():
     '''
     Adds BERT embedding values to sentences in the original test and train datasets. Then 
     saves these as separate test and train files, which can be used as an input for a classification

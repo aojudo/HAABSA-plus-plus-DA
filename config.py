@@ -40,18 +40,19 @@ FLAGS = tf.app.flags.FLAGS
 
 
 # general data augmentation flags
+
 tf.app.flags.DEFINE_string('da_type','none','type of data augmentation method used (can be: none, EDA, )')
-tf.app.flags.DEFINE_string('raw_data_augmented', FLAGS.raw_data_dir+'_'+FLAGS.da_type + '_' + 'raw_data'+str(FLAGS.year)+'_augm.txt', "file raw augmented data is written to")
+
 
 
 # EDA specific flags
-tf.app.flags.DEFINE_string("EDA_type", "adjusted", "type of eda (original or adjusted)")
-tf.app.flags.DEFINE_integer("EDA_deletion", 0, "number of deletion augmentations")
-tf.app.flags.DEFINE_integer("EDA_replacement", 1, "number of replacement augmentations")
-tf.app.flags.DEFINE_integer("EDA_insertion", 1, "number of insertion augmentations")
-tf.app.flags.DEFINE_integer("EDA_swap", 1, "number of swap augmentations") # in adjusted mode, higher number means more swaps within the same category
-tf.app.flags.DEFINE_float("EDA_pct", .2, "percentage of words affected by augmentation") # in adjusted mode EDA_swap not affected
-tf.app.flags.DEFINE_integer("original_multiplier", 3, "How many times the original data should be used in the training data")
+tf.app.flags.DEFINE_string('EDA_type', 'adjusted', 'type of eda (original or adjusted)')
+tf.app.flags.DEFINE_integer('EDA_deletion', 0, 'number of deletion augmentations')
+tf.app.flags.DEFINE_integer('EDA_replacement', 1, 'number of replacement augmentations')
+tf.app.flags.DEFINE_integer('EDA_insertion', 1, 'number of insertion augmentations')
+tf.app.flags.DEFINE_integer('EDA_swap', 1, 'number of swap augmentations') # in adjusted mode, higher number means more swaps within the same category
+tf.app.flags.DEFINE_float('EDA_pct', .2, 'percentage of words affected by augmentation') # in adjusted mode EDA_swap not affected
+tf.app.flags.DEFINE_integer('original_multiplier', 1, 'the amount of times the original data should be used in the training data (integer only)')
 
 
 ### INCLUDE DA_TYPE IN PATH AND FILE NAMES!
@@ -90,9 +91,10 @@ tf.app.flags.DEFINE_float('random_base', 0.01, 'initial random base')
 
 # NEWLY CREATED BY ARTHUR
 tf.app.flags.DEFINE_string('raw_data_dir', 'data/program_generated_data/raw_data/', 'folder contataining raw data')
-tf.app.flags.DEFINE_string('raw_data_file', FLAGS.raw_data_dir+'_'+FLAGS.da_type + '_' +'raw_data'+str(FLAGS.year)+'.txt', 'raw data file for retrieving BERT embeddings, contains both train and test data')
-tf.app.flags.DEFINE_string('raw_data_train', FLAGS.raw_data_dir+'_'+FLAGS.da_type + '_' + 'raw_data'+str(FLAGS.year)+'_train.txt', "file raw train data is written to")
-tf.app.flags.DEFINE_string('raw_data_test', FLAGS.raw_data_dir+'_'+FLAGS.da_type  + '_' + 'raw_data'+str(FLAGS.year)+'_test.txt', "file raw test data is written to")
+tf.app.flags.DEFINE_string('raw_data_file', FLAGS.raw_data_dir + FLAGS.da_type + '_' +'raw_data'+str(FLAGS.year)+'.txt', 'raw data file for retrieving BERT embeddings, contains both train and test data')
+tf.app.flags.DEFINE_string('raw_data_train', FLAGS.raw_data_dir + FLAGS.da_type + '_' + 'raw_data'+str(FLAGS.year)+'_train.txt', 'file raw train data is written to')
+tf.app.flags.DEFINE_string('raw_data_test', FLAGS.raw_data_dir + FLAGS.da_type  + '_' + 'raw_data'+str(FLAGS.year)+'_test.txt', 'file raw test data is written to')
+tf.app.flags.DEFINE_string('raw_data_augmented', FLAGS.raw_data_dir + FLAGS.da_type + '_' + 'raw_data'+str(FLAGS.year)+'_augm.txt', 'file raw augmented data is written to')
 
 # CHANGE GPU ID TO DEVICE ID, SO WE CAN ALSO USE CPU'S
 tf.app.flags.DEFINE_string('bert_embedding_path', 'data/program_generated_data/bert_embeddings/bert_base_restaurant_'+FLAGS.da_type + '_' + str(FLAGS.year)+'.txt', 'path to BERT embeddings file')
@@ -104,7 +106,7 @@ tf.app.flags.DEFINE_string('hyper_results_dir', 'hyper_results/'+str(FLAGS.year)
 
 
 # FOUND IN THE CODE AND DOCUMENTED IN MY WORD FILE (notes.docx)
-tf.app.flags.DEFINE_string('embedding_path', 'data/program_generated_data/'+FLAGS.embedding_type+'_'+str(FLAGS.embedding_dim)+'_' + FLAGS.da_type + '_' str(FLAGS.year)+'.txt', 'word embeddings from BERT') # two options, think this is this one, otherwise result from prepare_bert
+tf.app.flags.DEFINE_string('embedding_path', 'data/program_generated_data/'+FLAGS.embedding_type+'_'+str(FLAGS.embedding_dim)+'_' + FLAGS.da_type + '_' + str(FLAGS.year)+'.txt', 'word embeddings from BERT') # two options, think this is this one, otherwise result from prepare_bert
 tf.app.flags.DEFINE_string('train_path', 'data/program_generated_data/' + FLAGS.da_type + '_' + str(FLAGS.year) + '_' + 'traindata' + '_' + FLAGS.embedding_type + '_' + str(FLAGS.embedding_dim) +'.txt', 'path for train sentences with BERT embeddings')
 tf.app.flags.DEFINE_string('test_path', 'data/program_generated_data/' + FLAGS.da_type + '_' + str(FLAGS.year) + '_' + 'testdata' + '_' + FLAGS.embedding_type + '_' + str(FLAGS.embedding_dim) +'.txt', 'path for test sentences with BERT embeddings')
 tf.app.flags.DEFINE_string('remaining_test_path', 'data/program_generated_data/' + FLAGS.da_type + '_' + str(FLAGS.year) + '_' + 'remainingtestdata' + '_' + FLAGS.embedding_type + '_' + str(FLAGS.embedding_dim) +'.txt', 'path for formatted test data remaining after ontology')

@@ -5,13 +5,14 @@
 # Adapted from Van Berkum et al. (2021) https://github.com/stefanvanberkum/CD-ABSC.
 
 
-from dataReader2016 import read_data_2016
+from xml_to_raw import read_xml
 from sklearn.model_selection import StratifiedKFold
 import numpy as np
 import random
 import os
 import get_bert
 import prepare_bert
+import shutil
 
 
 def loadDataAndEmbeddings(config, loadData, augment_data):
@@ -37,24 +38,24 @@ def loadDataAndEmbeddings(config, loadData, augment_data):
             # convert xml data to raw text data. If augment_data==True, also augment data
             source_count, target_count = [], []
             source_word2idx, target_phrase2idx = {}, {}
-            print('reading training data...')
+            print('Reading train data...')
             train_data, ct = read_xml(in_file=FLAGS.train_data,
-                                      source_count,
-                                      source_word2idx,
-                                      target_count,
-                                      target_phrase2idx,
+                                      source_count=source_count,
+                                      source_word2idx=source_word2idx,
+                                      target_count=target_count,
+                                      target_phrase2idx=target_phrase2idx,
                                       out_file=train_raw,
-                                      augment_data,
+                                      augment_data=augment_data,
                                       augmentation_file=augment_raw)
-            print('reading test data...')
+            print('Reading test data...')
             test_data, _ = read_xml(in_file=FLAGS.test_data,
-                                    source_count,
-                                    source_word2idx,
-                                    target_count,
-                                    target_phrase2idx,
+                                    source_count=source_count,
+                                    source_word2idx=source_word2idx,
+                                    target_count=target_count,
+                                    target_phrase2idx=target_phrase2idx,
                                     out_file=test_raw,
-                                    False,
-                                    None)
+                                    augment_data=False,
+                                    augmentation_file=None)
             
             # in Tomas' code, combining original train data with artificial data happens inside load_inputs_twitter
             # function in utils.py, which is called inside lcrModel....py. Because I need to combine the data before
@@ -72,7 +73,7 @@ def loadDataAndEmbeddings(config, loadData, augment_data):
             if FLAGS.original_multiplier > 1:
                 with open(train_raw, 'r+') as file:
                     text = file.read()
-                    file.write(text * (n-1))
+                    file.write(text * (FLAGS.original_multiplier-1))
             
             # if data augmentation is used, merge augmented raw data into training data
             if augment_data:

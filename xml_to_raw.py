@@ -160,7 +160,7 @@ def read_xml(in_file, source_count, source_word2idx, target_count, target_phrase
     ####################################### DIFFERENT CODE TOMAS BEGIN
 
     counted_cats = Counter(category_counter)
-    print('category distribution for {} : {}'.format(file_name, counted_cats))
+    print('category distribution for {} : {}'.format(out_file, counted_cats))
     if augment_data:
         category_sorter = {}  # for random swap of targets between sentences
         for i in counted_cats.keys():

@@ -27,8 +27,8 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 # main function
 def main(_):
-    loadData        = False # only use raw data files, BERT embeddings and prepared train and test files are not created yet
-    augment_data    = True # true to augment   
+    loadData        = True # only use raw data files, BERT embeddings and prepared train and test files are not created yet
+    # augment_data    = True # true to augment   
     useOntology     = False # when used together with runLCRROTALT_v4, the two-step method is used
     runLCRROTALT_v4 = True # when used together with useOntology, the two-step method is used
     weightanalysis  = False # what is this used for?
