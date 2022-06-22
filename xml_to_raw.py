@@ -116,7 +116,7 @@ def read_xml(in_file, source_count, source_word2idx, target_count, target_phrase
     
     if augment_data:
         if os.path.isfile(in_file):
-            augm_f = io.open(augmentation_file, "w", encoding='utf-8') if augment_data else None #changed condition compared to tomas' code
+            augm_f = io.open(augmentation_file, "w", encoding='utf-8') if augment_data else None # changed condition compared to tomas' code
         else:    
             raise Exception('Trying to augment data, but no file specified to save to. Either specify file or don\'t use data augmentation.')
     else:
@@ -157,7 +157,7 @@ def read_xml(in_file, source_count, source_word2idx, target_count, target_phrase
                     if len(t_sptoks) > max_target_len:
                         max_target_len = len(t_sptoks)
 
-####################################### DIFFERENT CODE TOMAS BEGIN
+    ####################################### DIFFERENT CODE TOMAS BEGIN
 
     counted_cats = Counter(category_counter)
     print('category distribution for {} : {}'.format(file_name, counted_cats))
@@ -211,7 +211,7 @@ def read_xml(in_file, source_count, source_word2idx, target_count, target_phrase
             random.shuffle(sentences_same_cat)
             y = [sentences_same_cat[i * 2: (i + 1) * 2] for i in range(5)]
 
-####################################### DIFFERENT CODE TOMAS END
+    ####################################### DIFFERENT CODE TOMAS END
 
     if len(source_count) == 0:
         source_count.append(['<pad>', 0])

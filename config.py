@@ -1,3 +1,18 @@
+# This file contains flags whose values affect most of the modules in this
+# project. Including all these variables in one single file makes adapting the
+# code much easier. Some flags should be change to run different models, while
+# others (especially file locations) should not be changed unless necessary.
+#
+# https://github.com/aojudo/HAABSA-plus-plus-DA
+#
+# Most of the flags and the functions are adapted from Wallaart et al. (2018) 
+# https://github.com/ofwallaart/HAABSA. Most BERT related flags are similar to
+# the ones used by Trusca et al. (2020)
+# https://github.com/mtrusca/HAABSA_PLUS_PLUS and most EDA related flags are 
+# adopted from Lietsting et al. (2020) 
+# https://github.com/tomasLiesting/HAABSADA.
+
+
 #!/usr/bin/env python
 # encoding: utf-8
 
@@ -7,12 +22,44 @@ import sys
 FLAGS = tf.app.flags.FLAGS
 
 
-# general variables
-tf.app.flags.DEFINE_string('da_type','none','type of data augmentation method used. (can be: none)')
+# parameters to change for different model configurations
 
-tf.app.flags.DEFINE_string('embedding_type','BERT','type of embedding used. (OLD: can be: glove, word2vec-cbow, word2vec-SG, fasttext, BERT, BERT_Large, ELMo)')
-tf.app.flags.DEFINE_integer('year', 2015, 'possible dataset years [2015, 2016]')
-tf.app.flags.DEFINE_integer('embedding_dim', 768, 'dimension of word embedding')
+
+# hyperparameters tuned in this research (for reproducing research results, use the hyperparameters as specified in README.md)
+
+
+# hyperparemters not tuned in this research
+
+
+# fixed parameters (not advised to change as some might impact the correct functioning of the code)
+
+
+# file locations in project folder (not advised to change because some code might depend on exact file locations)
+
+
+
+
+# general data augmentation flags
+tf.app.flags.DEFINE_string('da_type','none','type of data augmentation method used (can be: none, EDA, )')
+tf.app.flags.DEFINE_string('raw_data_augmented', FLAGS.raw_data_dir+'_'+FLAGS.da_type + '_' + 'raw_data'+str(FLAGS.year)+'_augm.txt', "file raw augmented data is written to")
+
+
+# EDA specific flags
+tf.app.flags.DEFINE_string("EDA_type", "adjusted", "type of eda (original or adjusted)")
+tf.app.flags.DEFINE_integer("EDA_deletion", 0, "number of deletion augmentations")
+tf.app.flags.DEFINE_integer("EDA_replacement", 1, "number of replacement augmentations")
+tf.app.flags.DEFINE_integer("EDA_insertion", 1, "number of insertion augmentations")
+tf.app.flags.DEFINE_integer("EDA_swap", 1, "number of swap augmentations") # in adjusted mode, higher number means more swaps within the same category
+tf.app.flags.DEFINE_float("EDA_pct", .2, "percentage of words affected by augmentation") # in adjusted mode EDA_swap not affected
+tf.app.flags.DEFINE_integer("original_multiplier", 3, "How many times the original data should be used in the training data")
+
+
+### INCLUDE DA_TYPE IN PATH AND FILE NAMES!
+
+# general variables
+tf.app.flags.DEFINE_string('embedding_type','BERT','type of embedding used, can only be BERT in this project (In M. Trusca\'s code it can be: glove, word2vec-cbow, word2vec-SG, fasttext, BERT, BERT_Large, ELMo)')
+tf.app.flags.DEFINE_integer('year', 2015, 'possible dataset years (2015 and 2016)') # IN CASE OTHER DATASETS HAVE TO BE USED, UPDATE THIS VARIABLE TO DATASET-NAME INSTEAD OF YEAR!
+tf.app.flags.DEFINE_integer('embedding_dim', 768, 'dimension of word embeddings')
 tf.app.flags.DEFINE_integer('n_class', 3, 'number of distinct class')
 tf.app.flags.DEFINE_integer('max_sentence_len', 80, 'max number of tokens per sentence')
 tf.app.flags.DEFINE_integer('max_doc_len', 20, 'max number of tokens per sentence')
@@ -32,7 +79,7 @@ tf.app.flags.DEFINE_integer('batch_size', 250, 'number of example per batch') # 
 
 # hyperparameters that are not tuned
 tf.app.flags.DEFINE_float('keep_prob2', 0.5, 'dropout keep prob for the softmax layer in the lcr-rot model (not tuned)')
-tf.app.flags.DEFINE_integer('n_hidden', 300, 'number of hidden unit')
+tf.app.flags.DEFINE_integer('n_hidden', 300, 'number of hidden units')
 tf.app.flags.DEFINE_integer('n_iter', 100, 'number of train iter')
 tf.app.flags.DEFINE_integer('n_layer', 3, 'number of stacked rnn')
 tf.app.flags.DEFINE_string('is_r', '1', 'prob')
@@ -43,31 +90,37 @@ tf.app.flags.DEFINE_float('random_base', 0.01, 'initial random base')
 
 # NEWLY CREATED BY ARTHUR
 tf.app.flags.DEFINE_string('raw_data_dir', 'data/program_generated_data/raw_data/', 'folder contataining raw data')
-tf.app.flags.DEFINE_string('raw_data_file', FLAGS.raw_data_dir+'raw_data'+str(FLAGS.year)+'.txt', 'raw data file for retrieving BERT embeddings, contains both train and test data')
-tf.app.flags.DEFINE_string('bert_embedding_path', 'data/program_generated_data/bert_embeddings/bert_base_restaurant_'+str(FLAGS.year)+'.txt', 'path to BERT embeddings file')
+tf.app.flags.DEFINE_string('raw_data_file', FLAGS.raw_data_dir+'_'+FLAGS.da_type + '_' +'raw_data'+str(FLAGS.year)+'.txt', 'raw data file for retrieving BERT embeddings, contains both train and test data')
+tf.app.flags.DEFINE_string('raw_data_train', FLAGS.raw_data_dir+'_'+FLAGS.da_type + '_' + 'raw_data'+str(FLAGS.year)+'_train.txt', "file raw train data is written to")
+tf.app.flags.DEFINE_string('raw_data_test', FLAGS.raw_data_dir+'_'+FLAGS.da_type  + '_' + 'raw_data'+str(FLAGS.year)+'_test.txt', "file raw test data is written to")
+
+# CHANGE GPU ID TO DEVICE ID, SO WE CAN ALSO USE CPU'S
+tf.app.flags.DEFINE_string('bert_embedding_path', 'data/program_generated_data/bert_embeddings/bert_base_restaurant_'+FLAGS.da_type + '_' + str(FLAGS.year)+'.txt', 'path to BERT embeddings file')
 tf.app.flags.DEFINE_string('bert_pretrained_path', 'data/external_data/uncased_L-12_H-768_A-12', 'path to pretrained BERT model')
 tf.app.flags.DEFINE_string('temp_bert_dir', 'data/program_generated_data/temp/bert/', 'directory for temporary BERT files')
 tf.app.flags.DEFINE_string('gpu_id', '0', 'id of the gpu use for running the models used bu tensorflow')
 tf.app.flags.DEFINE_string('java_path', 'C:/Program Files/Java/jre1.8.0_241/bin/java.exe', 'path to java runtime environment')
-tf.app.flags.DEFINE_string('hyper_results_dir', 'hyper_results/'+str(FLAGS.year)+'_'+str(FLAGS.da_type)+'/', 'path to directory containg hyperparameter optimisation results')
+tf.app.flags.DEFINE_string('hyper_results_dir', 'hyper_results/'+str(FLAGS.year)+'_'+FLAGS.da_type+'/', 'path to directory containg hyperparameter optimisation results')
 
 
 # FOUND IN THE CODE AND DOCUMENTED IN MY WORD FILE (notes.docx)
-tf.app.flags.DEFINE_string('embedding_path', 'data/program_generated_data/'+str(FLAGS.embedding_type)+'_'+str(FLAGS.year)+'_'+str(FLAGS.embedding_dim)+'.txt', 'word embeddings from BERT') # two options, think this is this one, otherwise result from prepare_bert
-tf.app.flags.DEFINE_string('train_path', 'data/program_generated_data/'+str(FLAGS.embedding_dim)+'traindata'+str(FLAGS.year)+str(FLAGS.embedding_type)+'.txt', 'path for train sentences with BERT embeddings')
-tf.app.flags.DEFINE_string('test_path', 'data/program_generated_data/' + str(FLAGS.embedding_dim)+'testdata'+str(FLAGS.year)+str(FLAGS.embedding_type)+'.txt', 'path for test sentences with BERT embeddings')
-tf.app.flags.DEFINE_string('remaining_test_path', 'data/program_generated_data/'+str(FLAGS.embedding_dim)+'remainingtestdata'+str(FLAGS.year)+'.txt', 'formatted remaining test data path after ontology')
+tf.app.flags.DEFINE_string('embedding_path', 'data/program_generated_data/'+FLAGS.embedding_type+'_'+str(FLAGS.embedding_dim)+'_' + FLAGS.da_type + '_' str(FLAGS.year)+'.txt', 'word embeddings from BERT') # two options, think this is this one, otherwise result from prepare_bert
+tf.app.flags.DEFINE_string('train_path', 'data/program_generated_data/' + FLAGS.da_type + '_' + str(FLAGS.year) + '_' + 'traindata' + '_' + FLAGS.embedding_type + '_' + str(FLAGS.embedding_dim) +'.txt', 'path for train sentences with BERT embeddings')
+tf.app.flags.DEFINE_string('test_path', 'data/program_generated_data/' + FLAGS.da_type + '_' + str(FLAGS.year) + '_' + 'testdata' + '_' + FLAGS.embedding_type + '_' + str(FLAGS.embedding_dim) +'.txt', 'path for test sentences with BERT embeddings')
+tf.app.flags.DEFINE_string('remaining_test_path', 'data/program_generated_data/' + FLAGS.da_type + '_' + str(FLAGS.year) + '_' + 'remainingtestdata' + '_' + FLAGS.embedding_type + '_' + str(FLAGS.embedding_dim) +'.txt', 'path for formatted test data remaining after ontology')
 
 # OTHER USEFUL FLAGS FROM THIS FILE
 tf.app.flags.DEFINE_string('train_data', 'data/external_data/restaurant_train_'+str(FLAGS.year)+'.xml', 'original xml train data path')
 tf.app.flags.DEFINE_string('test_data', 'data/external_data/restaurant_test_'+str(FLAGS.year)+'.xml', 'original xml test data path')
 tf.app.flags.DEFINE_string('method', 'AE', 'model type: AE, AT or AEAT')
-tf.app.flags.DEFINE_string('prob_file', 'prob1.txt', 'prob')
+
+# changed these files to Tomas' versions as I also changed the resutls saving code in lcrModel...py from Olaf's to Tomas'. 
+tf.app.flags.DEFINE_string('prob_file', 'results.txt', 'prob')
+tf.app.flags.DEFINE_string('results_file', 'results/data_augmentation_results.json', 'files where results will be saved in json')
 tf.app.flags.DEFINE_string('saver_file', 'prob1.txt', 'prob')
 
-
-tf.app.flags.DEFINE_string('hyper_train_path', 'data/program_generated_data/'+str(FLAGS.embedding_dim)+'hypertraindata'+str(FLAGS.year)+str(FLAGS.embedding_type)+'.txt', 'hyper train data path')
-tf.app.flags.DEFINE_string('hyper_eval_path', 'data/program_generated_data/'+str(FLAGS.embedding_dim)+'hyperevaldata'+str(FLAGS.year)+str(FLAGS.embedding_type)+'.txt', 'hyper eval data path')
+tf.app.flags.DEFINE_string('hyper_train_path', 'data/program_generated_data/' + FLAGS.da_type + '_' + str(FLAGS.year) + '_' + 'hypertraindata' + '_' + FLAGS.embedding_type + '_' + str(FLAGS.embedding_dim) +'.txt', 'path to traning data for hyperparameter tuning')
+tf.app.flags.DEFINE_string('hyper_eval_path', 'data/program_generated_data/' + FLAGS.da_type + '_' + str(FLAGS.year) + '_' + 'hyperevaldata' + '_' + FLAGS.embedding_type + '_' + str(FLAGS.embedding_dim) +'.txt', 'path to evaluation data for hyperparameter tuning')
 
 
 #######################################################################################  OLD

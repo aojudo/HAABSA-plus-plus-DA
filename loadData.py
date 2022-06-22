@@ -10,6 +10,8 @@ from sklearn.model_selection import StratifiedKFold
 import numpy as np
 import random
 import os
+import get_bert
+import prepare_bert
 
 
 def loadDataAndEmbeddings(config, loadData, augment_data):
@@ -19,9 +21,9 @@ def loadDataAndEmbeddings(config, loadData, augment_data):
 ################################ should be changed to: if loadData=true: { if SLAGS.da-method=='da-method': { prepare datasets (xml_to_raw), get BERT embedings (get_bert), prepare BERT embeddings (prepare_bert) } } else: { ...
     if loadData == True:
         # locations for raw files
-        train_raw = FLAGS.raw_data_dir+'/raw_data'+str(FLAGS.year)+'_train.txt'
-        augment_raw = FLAGS.augmentation_file_path
-        test_raw = FLAGS.raw_data_dir+'/raw_data'+str(FLAGS.year)+'_test.txt'
+        augment_raw = FLAGS.raw_data_augmented
+        train_raw = FLAGS.raw_data_train
+        test_raw = FLAGS.raw_data_test
         train_test_raw = FLAGS.raw_data_file
         
         # check whether files exist already, else create raw data files
@@ -63,69 +65,76 @@ def loadDataAndEmbeddings(config, loadData, augment_data):
             # required: raw (train + augm) for prepare_bert, raw test for prepare_bert and raw (train + augm + test) for get_bert
             # how to get the lengths of these files?
             
+            # make sure to update the splitting point in prepare_bert! 
             
             
-            non_augmented = int(len(lines)/3)
-            if augment_data:
-                lines *= FLAGS.original_multiplier
-                aug_lines = io.open(augmentation_file_path, 'r', encoding='utf-8').readlines()
-                lines.extend(aug_lines)            
+            # if required, multiply the original raw train data size
+            if FLAGS.original_multiplier > 1:
+                with open(train_raw, 'r+') as file:
+                    text = file.read()
+                    file.write(text * (n-1))
             
             # if data augmentation is used, merge augmented raw data into training data
             if augment_data:
+                with open(augment_raw, 'r') as in_file, open(train_raw, 'w') as out_file:
+                    shutil.copyfileobj(in_file, out_file)
                 
-            
-            
-            # merge raw train and test files into one file which is used for retrieving BERT embedings
-            with open(train_test_raw, 'wb') as wfd:
-                for f in [train_raw, test_raw]:
-                    with open(f,'rb') as fd:
-                        shutil.copyfileobj(fd, wfd)
+            # create file containing both raw train and test data; used for BERT embedings
+            with open(train_test_raw, 'wb') as out_file:
+                for file in [train_raw, test_raw]:
+                    with open(file, 'rb') as in_file:
+                        shutil.copyfileobj(in_file, out_file)
 
-            ################## replace by: get_bert and prepare_bert
+            # create BERT embeddings for all tokens in train_test_raw
+            print('Creating embeddings for every token in the train and test data...')
+            get_bert.main()
+            print('Finished creating BERT embeddings for test and train data...')
             
-            #### something like: if 
+            ## retrive number of aspects in the training data
+            # with open(train_raw, 'r') as file:
+                # lines = file.read().splitlines()
+                # train_aspects = len(lines)/3
             
+            # add BERT embeddings to raw training and text files
+            prepare_bert.main(train_aspects)
             
-            # create embeddings for every token in the train and test data
-            print('creating embeddings for every token in the train and test data...')
-            
-            
-            wt = np.random.normal(0, 0.05, [len(source_word2idx), 300])
-            word_embed = {}
-            count = 0.0
-            with open(FLAGS.pretrain_file, 'r',encoding='utf8') as f:
-                for line in f:
-                    content = line.strip().split()
-                    if content[0] in source_word2idx:
-                        wt[source_word2idx[content[0]]] = np.array(list(map(float, content[1:])))
-                        count += 1
+            # wt = np.random.normal(0, 0.05, [len(source_word2idx), 300])
+            # word_embed = {}
+            # count = 0.0
+            # with open(FLAGS.pretrain_file, 'r',encoding='utf8') as f:
+                # for line in f:
+                    # content = line.strip().split()
+                    # if content[0] in source_word2idx:
+                        # wt[source_word2idx[content[0]]] = np.array(list(map(float, content[1:])))
+                        # count += 1
                         
-            print('finished embedding context vectors...')
+            # print('Finished created BERT embeddings for test and train data...')
             
-            # already happens in my prepare_bert
-            #print data to txt file
-            outF= open(FLAGS.embedding_path, 'w')
-            for i, word in enumerate(source_word2idx):
-                outF.write(word)
-                outF.write(' ')
-                outF.write(' '.join(str(w) for w in wt[i]))
-                outF.write('\n')
-            outF.close()
-            print((len(source_word2idx)-count)/len(source_word2idx)*100)
-            ################## end replace by
+            ## already happens in my prepare_bert
+            ## print data to txt file
+            # outF= open(FLAGS.embedding_path, 'w')
+            # for i, word in enumerate(source_word2idx):
+                # outF.write(word)
+                # outF.write(' ')
+                # outF.write(' '.join(str(w) for w in wt[i]))
+                # outF.write('\n')
+            # outF.close()
+            # print((len(source_word2idx)-count)/len(source_word2idx)*100)
             
             # probably not possible with my xml_to_raw implementation, so use code in following else block
-            return train_data[0], test_data[0], train_data[4], test_data[4]
-############################### end should be changed to
+            
+            # train_size = train_data[0]
+            # test_size = test_data[0]
+            # train_polarity_vector = train_data[4]
+            # test_polarity_vector = test_data[4]
+    
+    ## if data is prepared already, only return some stats
+    # else:
+    train_size, train_polarity_vector = getStatsFromFile(FLAGS.train_path)
+    test_size, test_polarity_vector = getStatsFromFile(FLAGS.test_path)
 
-    # propably, this should happen either way. IE, else should be removed
-    else:
-        #get statistic properties from txt file
-        train_size, train_polarity_vector = getStatsFromFile(FLAGS.train_path)
-        test_size, test_polarity_vector = getStatsFromFile(FLAGS.test_path)
-
-        return train_size, test_size, train_polarity_vector, test_polarity_vector
+    # return sizes and polarity vectors for both train and test data
+    return train_size, test_size, train_polarity_vector, test_polarity_vector, ct
 
 def loadAverageSentence(config,sentences,pre_trained_context):
     FLAGS = config
@@ -144,7 +153,7 @@ def getStatsFromFile(path):
         size = len(lines)/3
         print('size equals: '+str(size))
         for i in range(0, len(lines), 3):
-            #polarity
+            # polarity
             print('line '+str(i)+' contains word(s) '+str(lines[i+1]))
             polarity_vector.append(lines[i + 2].strip().split()[0])
     return size, polarity_vector

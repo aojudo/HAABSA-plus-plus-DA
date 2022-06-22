@@ -127,11 +127,13 @@ def load_inputs_twitter(input_file, word_id_file, sentence_len, type_='', is_r=T
     
     # read in txt file
     lines = open(input_file).readlines()
-    non_augmented = int(len(lines)/3)
-    if augment_data:
-        lines *= FLAGS.original_multiplier
-        aug_lines = io.open(augmentation_file_path, 'r', encoding='utf-8').readlines()
-        lines.extend(aug_lines)
+    
+    # I do this part in the loadData.py
+    # non_augmented = int(len(lines)/3)
+    # if augment_data:
+        # lines *= FLAGS.original_multiplier
+        # aug_lines = io.open(augmentation_file_path, 'r', encoding='utf-8').readlines()
+        # lines.extend(aug_lines)
     
     for i in range(0, len(lines), 3):
         # targets

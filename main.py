@@ -27,15 +27,19 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 # main function
 def main(_):
-    loadData        = False # only for non-contextualised word embeddings, use prepareBERT for BERT (and BERT_Large) and prepareELMo for ELMo
-    augment_data    = True # load data must be true to augment    
+    loadData        = False # only use raw data files, BERT embeddings and prepared train and test files are not created yet
+    augment_data    = True # true to augment   
     useOntology     = False # when used together with runLCRROTALT_v4, the two-step method is used
-    weightanalysis  = False # what is this used for?
     runLCRROTALT_v4 = True # when used together with useOntology, the two-step method is used
+    weightanalysis  = False # what is this used for?
+        
+    # if EDA should be used, boolean is set to True (CHANGE THIS UGLY THING BY UPDATING CODE TO READ THE da_type FLAG!)
+    if FLAGS.da_type == 'EDA':
+        augment_data = True
+    else:
+        augment_data = False
     
     # retrieve data and wordembeddings
-    
-    #TODO: change function inputs and output to match new version
     train_size, test_size, train_polarity_vector, test_polarity_vector, ct = loadDataAndEmbeddings(FLAGS, loadData, augment_data)
     print(test_size)
 
