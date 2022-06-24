@@ -24,7 +24,7 @@ data/program_generated_data/temp/bert/**
 
 # ignore results files but preserve folder
 results/**
-results/README.md
+!results/README.md
 
 
 # ignore hyper_results files but preserve folder
