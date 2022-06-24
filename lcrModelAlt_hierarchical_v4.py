@@ -10,6 +10,8 @@ from att_layer import bilinear_attention_layer, dot_produce_attention_layer
 from config import *
 from utils import load_w2v, batch_index, load_inputs_twitter
 import numpy as np
+import pandas as pd
+from data_augmentation import Augmentation
 
 # set seed for reproducibility
 tf.set_random_seed(1)
@@ -167,40 +169,46 @@ def main(train_path, test_path, accuracyOnt, test_size, remaining_size, augment_
         
         #################################################### this is where Tomas code starts to differ
         
-        len_non_augmented, tr_x, tr_sen_len, tr_x_bw, tr_sen_len_bw, tr_y, tr_target_word, tr_tar_len, _, _, _ = load_inputs_twitter(
-            train_path,
-            word_id_mapping,
-            FLAGS.max_sentence_len,
-            'TC',
-            is_r,
-            FLAGS.max_target_len,
+        #len_non_augmented, 
+        tr_x, tr_sen_len, tr_x_bw, tr_sen_len_bw, tr_y, tr_target_word, tr_tar_len, _, _, _ = load_inputs_twitter(
+            input_file=train_path,
+            word_id_file=word_id_mapping,
+            sentence_len=FLAGS.max_sentence_len,
+            type_='TC',
+            is_r=is_r,
+            target_len=FLAGS.max_target_len,
             augment_data=augment_data,
-            augmentation_file_path=augmentation_file_path            
+            augmentation_file_path=augmentation_file_path,
+            encoding='utf8'
         )
         
-        _, te_x, te_sen_len, te_x_bw, te_sen_len_bw, te_y, te_target_word, te_tar_len, _, _, _ = load_inputs_twitter(
-            test_path,
-            word_id_mapping,
-            FLAGS.max_sentence_len,
-            'TC',
-            is_r,
-            FLAGS.max_target_len
+        #_, 
+        te_x, te_sen_len, te_x_bw, te_sen_len_bw, te_y, te_target_word, te_tar_len, _, _, _ = load_inputs_twitter(
+            input_file=test_path,
+            word_id_file=word_id_mapping,
+            sentence_len=FLAGS.max_sentence_len,
+            type_='TC',
+            is_r=is_r,
+            target_len=FLAGS.max_target_len,
+            augment_data=False,
+            augmentation_file_path=None,
+            encoding='utf8'
         )
         
-        ##################################### CAN PROBABLY DELETE THIS CODE AS IM NOT USING MIXUP
-        max_records_mixup = len(tr_x) if FLAGS.mixup_on_augmentations > 0 else len_non_augmented
-        if augment_data and FLAGS.use_word_mixup > 0:
-            print("The amount of records on which mixup is applied: {}".format(max_records_mixup))
-            rand_mixup = np.array(range(max_records_mixup-1))
-            print("applying mixup...")
-            for _ in range(FLAGS.use_word_mixup):
-                random.shuffle(rand_mixup)
-                for i, j in tqdm(zip(*[iter(rand_mixup)]*2)):
-                    first = (tr_x[i], tr_sen_len[i], tr_x_bw[i], tr_sen_len_bw[i], tr_y[i], tr_target_word[i], tr_tar_len[i])
-                    second = (tr_x[j], tr_sen_len[j], tr_x_bw[j], tr_sen_len_bw[j], tr_y[j], tr_target_word[j], tr_tar_len[j])
-                    augmenter.word_mixup(first, second)
-            print("Word mixup embeddings: {}".format(augmenter.counter))    
-        ##################################### END CAN PROBABLY DELETE THIS CODE
+        #################################### CAN PROBABLY DELETE THIS CODE AS IM NOT USING MIXUP
+        # max_records_mixup = len(tr_x) if FLAGS.mixup_on_augmentations > 0 else len_non_augmented
+        # if augment_data and FLAGS.use_word_mixup > 0:
+            # print("The amount of records on which mixup is applied: {}".format(max_records_mixup))
+            # rand_mixup = np.array(range(max_records_mixup-1))
+            # print("applying mixup...")
+            # for _ in range(FLAGS.use_word_mixup):
+                # random.shuffle(rand_mixup)
+                # for i, j in tqdm(zip(*[iter(rand_mixup)]*2)):
+                    # first = (tr_x[i], tr_sen_len[i], tr_x_bw[i], tr_sen_len_bw[i], tr_y[i], tr_target_word[i], tr_tar_len[i])
+                    # second = (tr_x[j], tr_sen_len[j], tr_x_bw[j], tr_sen_len_bw[j], tr_y[j], tr_target_word[j], tr_tar_len[j])
+                    # augmenter.word_mixup(first, second)
+            # print("Word mixup embeddings: {}".format(augmenter.counter))    
+        #################################### END CAN PROBABLY DELETE THIS CODE
 
         def get_batch_data(x_f, sen_len_f, x_b, sen_len_b, yi, target, tl, data_batch_size, kp1, kp2, is_shuffle=True):
             for index in batch_index(len(yi), data_batch_size, 1, is_shuffle):
@@ -327,7 +335,7 @@ def main(train_path, test_path, accuracyOnt, test_size, remaining_size, augment_
         new_experiment['pre_embed_aug'] = ct
         new_experiment['post_embed_aug'] = augmenter.counter
         df = df.append(new_experiment, ignore_index=True)
-        df.to_json(FLAGS.results_file)
+        df.to_json(path_or_buf=FLAGS.results_file, orient='columns')
         ################################### END TOMAS' WAY OF SAVING RESULTS
 
         print('Optimization Finished! Max acc={}'.format(max_acc))

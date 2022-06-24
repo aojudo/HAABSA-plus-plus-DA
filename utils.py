@@ -10,6 +10,7 @@
 # encoding: utf-8
 
 import numpy as np
+from config import *
 
 
 def batch_index(length, batch_size, n_iter=100, is_shuffle=True):
@@ -100,8 +101,11 @@ def load_aspect2id(input_file, word_id_mapping, w2v, embedding_dim):
 def change_y_to_onehot(y):
     from collections import Counter
     print(Counter(y))
-    class_set = set(y)
+    # class_set = set(y)
+    # n_class = len(class_set)
+    class_set = set(FLAGS.classes)    
     n_class = len(class_set)
+    
     y_onehot_mapping = dict(zip(class_set, range(n_class)))
     print(y_onehot_mapping)
     onehot = []
@@ -187,6 +191,7 @@ def load_inputs_twitter(input_file, word_id_file, sentence_len, type_='', is_r=T
             x.append(words + [0] * (sentence_len - len(words)))
     all_y = y;
     y = change_y_to_onehot(y)
+    
     if type_ == 'TD':
         return np.asarray(x), np.asarray(sen_len), np.asarray(x_r), \
                np.asarray(sen_len_r), np.asarray(y)

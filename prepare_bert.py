@@ -195,7 +195,11 @@ def main():
     lines_6 = open(FLAGS.temp_bert_dir + 'unique' + '_' + FLAGS.da_type + '_' + str(FLAGS.year) + '_BERT_Data_6.txt').readlines()
     lines_7 = open(FLAGS.temp_bert_dir + 'unique' + '_' + FLAGS.da_type + '_' + str(FLAGS.year) + '_BERT_Data_7.txt').readlines()
 
-    with open(FLAGS.temp_bert_dir + FLAGS.da_type + '_' + str(FLAGS.year) + '_BERT_Data_All.txt', 'w') as outF:
+    # troubleshooting print
+    print('number of lines in lines_1 is: '+str(len(lines_1)))
+
+    line_count = 0
+    with open(FLAGS.temp_bert_dir + FLAGS.da_type + '_' + str(FLAGS.year) + '_BERT_Data_All.txt', 'w') as out_f:
         for i in range(0, len(lines_1), 3):
             if lines_1[i + 1] == '\n':
                 if lines_2[i + 1] == '\n':
@@ -203,45 +207,57 @@ def main():
                         if lines_4[i + 1] == '\n':
                             if lines_5[i + 1] == '\n':
                                 if lines_6[i + 1] == '\n':
-                                    outF.write(lines_7[i])
-                                    outF.write(''.join(lines_7[i + 1]))
+                                    out_f.write(lines_7[i])
+                                    out_f.write(''.join(lines_7[i + 1]))
                                 else:
-                                    outF.write(lines_6[i])
-                                    outF.write(''.join(lines_6[i + 1]))
+                                    out_f.write(lines_6[i])
+                                    out_f.write(''.join(lines_6[i + 1]))
                             else:
-                                outF.write(lines_5[i])
-                                outF.write(''.join(lines_5[i + 1]))
+                                out_f.write(lines_5[i])
+                                out_f.write(''.join(lines_5[i + 1]))
                         else:
-                            outF.write(lines_4[i])
-                            outF.write(''.join(lines_4[i + 1]))
+                            out_f.write(lines_4[i])
+                            out_f.write(''.join(lines_4[i + 1]))
                     else:
-                        outF.write(lines_3[i])
-                        outF.write(''.join(lines_3[i + 1]))
+                        out_f.write(lines_3[i])
+                        out_f.write(''.join(lines_3[i + 1]))
                 else:
-                    outF.write(lines_2[i])
-                    outF.write(''.join(lines_2[i + 1]))
+                    out_f.write(lines_2[i])
+                    out_f.write(''.join(lines_2[i + 1]))
             else:
-                outF.write(lines_1[i])
-                outF.write(''.join(lines_1[i + 1]))
-
-            outF.write(lines_1[i + 2])
-
-        # retrive number of lines in training data
-        with open(FLAGS.raw_data_train, 'r') as file:
-            train_lines = len(file.read().splitlines())
+                out_f.write(lines_1[i])
+                out_f.write(''.join(lines_1[i + 1]))
+            
+            out_f.write(lines_1[i + 2])
+            line_count += 1
         
-        # split in train and test file
-        lines_all_data = open(FLAGS.temp_bert_dir + FLAGS.da_type + '_' + str(FLAGS.year) + '_BERT_Data_All.txt').readlines()
+        ## retrive number of lines in training data
+        # with open(FLAGS.raw_data_train, 'r') as file:
+            # train_lines = len(file.read().splitlines())
+            ## troubleshooting print
+            # print('number of train_lines is: '+str(train_lines))
+        
+        ## split in train and test file
+        # lines_all_data = out_f.readlines()
+        
+        # troubleshooting print
+        print('number of items in lines_all_data is: '+str(line_count))
+    
+    with open(FLAGS.temp_bert_dir + FLAGS.da_type + '_' + str(FLAGS.year) + '_BERT_Data_All.txt', 'r') as file:
+        lines_all_data = file.readlines()
+        print('number of lines in lines_all_data is: '+str(len(lines_all_data)))
+        
+        train_lines = sum(1 for line in open(FLAGS.raw_data_train))
         
         with open(FLAGS.train_path,'w') as out_train:
             for j in range(0, train_lines):
                 out_train.write(lines_all_data[j])
-        print ('Succesfully created BERT train file at data/program_generated_data/'+str(FLAGS.embedding_dim) +'traindata'+str(FLAGS.year) +'BERT.txt')
-        
+        print ('Succesfully created BERT train file at '+str(FLAGS.train_path))
+    
         with open(FLAGS.test_path,'w') as out_test:
             for k in range(train_lines, len(lines_all_data)):
                 out_test.write(lines_all_data[k])
-        print ('Succesfully created BERT test file at data/program_generated_data/'+str(FLAGS.embedding_dim) +'testdata'+str(FLAGS.year) +'BERT.txt')    
+        print ('Succesfully created BERT test file at '+str(FLAGS.test_path))
 
 
 if __name__ == '__main__':

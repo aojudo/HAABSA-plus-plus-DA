@@ -62,6 +62,7 @@ tf.app.flags.DEFINE_string('embedding_type','BERT','type of embedding used, can 
 tf.app.flags.DEFINE_integer('year', 2015, 'possible dataset years (2015 and 2016)') # IN CASE OTHER DATASETS HAVE TO BE USED, UPDATE THIS VARIABLE TO DATASET-NAME INSTEAD OF YEAR!
 tf.app.flags.DEFINE_integer('embedding_dim', 768, 'dimension of word embeddings')
 tf.app.flags.DEFINE_integer('n_class', 3, 'number of distinct class')
+tf.app.flags.DEFINE_list('classes', ['-1', '0', '1'], 'possible class labels in the dataset (in this case the three possible sentiments)')
 tf.app.flags.DEFINE_integer('max_sentence_len', 80, 'max number of tokens per sentence')
 tf.app.flags.DEFINE_integer('max_doc_len', 20, 'max number of tokens per sentence')
 tf.app.flags.DEFINE_integer('display_step', 4, 'number of test display step')
@@ -95,6 +96,7 @@ tf.app.flags.DEFINE_string('raw_data_file', FLAGS.raw_data_dir + FLAGS.da_type +
 tf.app.flags.DEFINE_string('raw_data_train', FLAGS.raw_data_dir + FLAGS.da_type + '_' + 'raw_data'+str(FLAGS.year)+'_train.txt', 'file raw train data is written to')
 tf.app.flags.DEFINE_string('raw_data_test', FLAGS.raw_data_dir + FLAGS.da_type  + '_' + 'raw_data'+str(FLAGS.year)+'_test.txt', 'file raw test data is written to')
 tf.app.flags.DEFINE_string('raw_data_augmented', FLAGS.raw_data_dir + FLAGS.da_type + '_' + 'raw_data'+str(FLAGS.year)+'_augm.txt', 'file raw augmented data is written to')
+tf.app.flags.DEFINE_string('EDA_counter_path', FLAGS.raw_data_dir + FLAGS.da_type + '_' + 'EDA_counter'+str(FLAGS.year)+'_augm.txt', 'file raw augmented data is written to')
 
 # CHANGE GPU ID TO DEVICE ID, SO WE CAN ALSO USE CPU'S
 tf.app.flags.DEFINE_string('bert_embedding_path', 'data/program_generated_data/bert_embeddings/bert_base_restaurant_'+FLAGS.da_type + '_' + str(FLAGS.year)+'.txt', 'path to BERT embeddings file')
@@ -112,9 +114,17 @@ tf.app.flags.DEFINE_string('test_path', 'data/program_generated_data/' + FLAGS.d
 tf.app.flags.DEFINE_string('remaining_test_path', 'data/program_generated_data/' + FLAGS.da_type + '_' + str(FLAGS.year) + '_' + 'remainingtestdata' + '_' + FLAGS.embedding_type + '_' + str(FLAGS.embedding_dim) +'.txt', 'path for formatted test data remaining after ontology')
 
 # OTHER USEFUL FLAGS FROM THIS FILE
-tf.app.flags.DEFINE_string('train_data', 'data/external_data/restaurant_train_'+str(FLAGS.year)+'.xml', 'original xml train data path')
-tf.app.flags.DEFINE_string('test_data', 'data/external_data/restaurant_test_'+str(FLAGS.year)+'.xml', 'original xml test data path')
+# tf.app.flags.DEFINE_string('train_data', 'data/external_data/restaurant_train_'+str(FLAGS.year)+'.xml', 'original xml train data path')
+# tf.app.flags.DEFINE_string('test_data', 'data/external_data/restaurant_test_'+str(FLAGS.year)+'.xml', 'original xml test data path')
 tf.app.flags.DEFINE_string('method', 'AE', 'model type: AE, AT or AEAT')
+
+###### (SMALLER) DEVELOPMENT TRAIN AND TEST FILES, MAKE SURE TO CHANGE BACK TO ORIGINAL ONES
+tf.app.flags.DEFINE_string('train_data', 'data/external_data/DEV_restaurant_train_2015.xml', 'DEVELOPMENT xml train data path')
+tf.app.flags.DEFINE_string('test_data', 'data/external_data/DEV_restaurant_test_2015.xml', 'DEVELOPMENT xml test data path')
+tf.app.flags.DEFINE_boolean('do_create_raw_files', False, 'whether raw files have to be created')
+tf.app.flags.DEFINE_boolean('do_get_bert', False, 'whether raw files have to be created')
+tf.app.flags.DEFINE_boolean('do_prepare_bert', False, 'whether raw files have to be created')
+
 
 # changed these files to Tomas' versions as I also changed the resutls saving code in lcrModel...py from Olaf's to Tomas'. 
 tf.app.flags.DEFINE_string('prob_file', 'results.txt', 'prob')

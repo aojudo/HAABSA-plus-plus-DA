@@ -56,12 +56,13 @@ def main(_):
         print(test[0])
         print('train acc = {:.4f}, test acc={:.4f}, remaining size={}'.format(accuracyOnt, accuracyOnt, remaining_size))
     else:
+        # if ontology is not used, all test data can be used
         test = FLAGS.test_path
-        remaining_size = 250
-        accuracyOnt = 0.87
+        remaining_size = test_size
+        accuracyOnt = 0
 
     if runLCRROTALT_v4 == True:
-       _, pred2, fw2, bw2, tl2, tr2 = lcrModelAlt_hierarchical_v4.main(FLAGS.train_path, test, accuracyOnt, test_size, remaining_size, augment_data, FLAGS.augmentation_file_path, ct)
+       _, pred2, fw2, bw2, tl2, tr2 = lcrModelAlt_hierarchical_v4.main(FLAGS.train_path, test, accuracyOnt, test_size, remaining_size, augment_data, FLAGS.raw_data_augmented, ct)
        tf.reset_default_graph()
 
     print('Finished program succesfully')

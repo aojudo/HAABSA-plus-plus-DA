@@ -1,25 +1,20 @@
 # ignore data
 data/**
 
-
 # include external_data folder
 !data/external_data/
 data/external_data/**
 !data/external_data/README.md
 
-
 # preserve program_generated_data directory structure
 !data/program_generated_data/
 data/program_generated_data/**
-
 !data/program_generated_data/bert_embeddings/
 data/program_generated_data/bert_embeddings/**
 !data/program_generated_data/bert_embeddings/README.md
-
 !data/program_generated_data/raw_data/
 data/program_generated_data/raw_data/**
 !data/program_generated_data/raw_data/README.md
-
 !data/program_generated_data/temp/
 data/program_generated_data/temp/**
 !data/program_generated_data/temp/bert/
@@ -27,17 +22,21 @@ data/program_generated_data/temp/bert/**
 !data/program_generated_data/temp/bert/README.md
 
 
+# ignore results files but preserve folder
+results/**
+results/README.md
+
+
+# ignore hyper_results files but preserve folder
+hyper_results/**
+!hyper_results/README.md
+
+
 # ignore all other program generated data
 cross_results_2015/**
 cross_results_2016/**
 hyper_results/**
-results/**
 summary/**
-
-
-# ignore contents of the hyper_results folder
-hyper_results/**
-!hyper_results/README.md
 
 
 # ignore cache

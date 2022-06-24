@@ -13,6 +13,7 @@ import os
 import get_bert
 import prepare_bert
 import shutil
+import pickle
 
 
 def loadDataAndEmbeddings(config, loadData, augment_data):
@@ -27,35 +28,45 @@ def loadDataAndEmbeddings(config, loadData, augment_data):
         test_raw = FLAGS.raw_data_test
         train_test_raw = FLAGS.raw_data_file
         
-        # check whether files exist already, else create raw data files
-        if os.path.isfile(train_raw):
-            raise Exception('File '+train_raw+' already exists. Delete file and run again.')
-        elif os.path.isfile(test_raw):
-            raise Exception('File '+test_raw+' already exists. Delete file and run again.')
-        elif os.path.isfile(train_test_raw):
-            raise Exception('File '+train_test_raw+' already exists. Delete file and run again.')       
-        else:
-            # convert xml data to raw text data. If augment_data==True, also augment data
-            source_count, target_count = [], []
-            source_word2idx, target_phrase2idx = {}, {}
-            print('Reading train data...')
-            train_data, ct = read_xml(in_file=FLAGS.train_data,
-                                      source_count=source_count,
-                                      source_word2idx=source_word2idx,
-                                      target_count=target_count,
-                                      target_phrase2idx=target_phrase2idx,
-                                      out_file=train_raw,
-                                      augment_data=augment_data,
-                                      augmentation_file=augment_raw)
-            print('Reading test data...')
-            test_data, _ = read_xml(in_file=FLAGS.test_data,
-                                    source_count=source_count,
-                                    source_word2idx=source_word2idx,
-                                    target_count=target_count,
-                                    target_phrase2idx=target_phrase2idx,
-                                    out_file=test_raw,
-                                    augment_data=False,
-                                    augmentation_file=None)
+        
+        if FLAGS.do_create_raw_files:       
+            # check whether files exist already, else create raw data files
+            if os.path.isfile(augment_raw):
+                raise Exception('File '+augment_raw+' already exists. Delete file and run again.')
+            if os.path.isfile(train_raw):
+                raise Exception('File '+train_raw+' already exists. Delete file and run again.')
+            elif os.path.isfile(test_raw):
+                raise Exception('File '+test_raw+' already exists. Delete file and run again.')
+            elif os.path.isfile(train_test_raw):
+                raise Exception('File '+train_test_raw+' already exists. Delete file and run again.')  
+            elif os.path.isfile(FLAGS.EDA_counter_path):
+                raise Exception('File '+FLAGS.EDA_counter_path+' already exists. Delete file and run again.')                  
+            else:
+                # convert xml data to raw text data. If augment_data==True, also augment data
+                source_count, target_count = [], []
+                source_word2idx, target_phrase2idx = {}, {}
+                print('Reading train data...')
+                train_data, ct = read_xml(in_file=FLAGS.train_data,
+                                          source_count=source_count,
+                                          source_word2idx=source_word2idx,
+                                          target_count=target_count,
+                                          target_phrase2idx=target_phrase2idx,
+                                          out_file=train_raw,
+                                          augment_data=augment_data,
+                                          augmentation_file=augment_raw)
+                print('Reading test data...')
+                test_data, _ = read_xml(in_file=FLAGS.test_data,
+                                        source_count=source_count,
+                                        source_word2idx=source_word2idx,
+                                        target_count=target_count,
+                                        target_phrase2idx=target_phrase2idx,
+                                        out_file=test_raw,
+                                        augment_data=False,
+                                        augmentation_file=None)
+            
+            # save amount of augmented sentences for each type of EDA
+            with open(FLAGS.EDA_counter_path, 'wb') as file:
+                pickle.dump(ct, file)
             
             # in Tomas' code, combining original train data with artificial data happens inside load_inputs_twitter
             # function in utils.py, which is called inside lcrModel....py. Because I need to combine the data before
@@ -85,49 +96,56 @@ def loadDataAndEmbeddings(config, loadData, augment_data):
                 for file in [train_raw, test_raw]:
                     with open(file, 'rb') as in_file:
                         shutil.copyfileobj(in_file, out_file)
+        
+        # load ct from pickle file
+        else:
+            with open(FLAGS.EDA_counter_path, 'rb') as file:
+                ct = pickle.load(file)            
 
-            # create BERT embeddings for all tokens in train_test_raw
+        # if required, create BERT embeddings for all tokens in train_test_raw
+        if FLAGS.do_get_bert:
             print('Creating embeddings for every token in the train and test data...')
             get_bert.main()
             print('Finished creating BERT embeddings for test and train data...')
-            
-            ## retrive number of aspects in the training data
-            # with open(train_raw, 'r') as file:
-                # lines = file.read().splitlines()
-                # train_aspects = len(lines)/3
-            
-            # add BERT embeddings to raw training and text files
-            prepare_bert.main(train_aspects)
-            
-            # wt = np.random.normal(0, 0.05, [len(source_word2idx), 300])
-            # word_embed = {}
-            # count = 0.0
-            # with open(FLAGS.pretrain_file, 'r',encoding='utf8') as f:
-                # for line in f:
-                    # content = line.strip().split()
-                    # if content[0] in source_word2idx:
-                        # wt[source_word2idx[content[0]]] = np.array(list(map(float, content[1:])))
-                        # count += 1
-                        
-            # print('Finished created BERT embeddings for test and train data...')
-            
-            ## already happens in my prepare_bert
-            ## print data to txt file
-            # outF= open(FLAGS.embedding_path, 'w')
-            # for i, word in enumerate(source_word2idx):
-                # outF.write(word)
-                # outF.write(' ')
-                # outF.write(' '.join(str(w) for w in wt[i]))
-                # outF.write('\n')
-            # outF.close()
-            # print((len(source_word2idx)-count)/len(source_word2idx)*100)
-            
-            # probably not possible with my xml_to_raw implementation, so use code in following else block
-            
-            # train_size = train_data[0]
-            # test_size = test_data[0]
-            # train_polarity_vector = train_data[4]
-            # test_polarity_vector = test_data[4]
+        
+        ## retrive number of aspects in the training data
+        # with open(train_raw, 'r') as file:
+            # lines = file.read().splitlines()
+            # train_aspects = len(lines)/3
+        
+        # if required, add BERT embeddings to raw training and text files
+        if FLAGS.do_prepare_bert:
+            prepare_bert.main()
+        
+        # wt = np.random.normal(0, 0.05, [len(source_word2idx), 300])
+        # word_embed = {}
+        # count = 0.0
+        # with open(FLAGS.pretrain_file, 'r',encoding='utf8') as f:
+            # for line in f:
+                # content = line.strip().split()
+                # if content[0] in source_word2idx:
+                    # wt[source_word2idx[content[0]]] = np.array(list(map(float, content[1:])))
+                    # count += 1
+                    
+        # print('Finished created BERT embeddings for test and train data...')
+        
+        ## already happens in my prepare_bert
+        ## print data to txt file
+        # outF= open(FLAGS.embedding_path, 'w')
+        # for i, word in enumerate(source_word2idx):
+            # outF.write(word)
+            # outF.write(' ')
+            # outF.write(' '.join(str(w) for w in wt[i]))
+            # outF.write('\n')
+        # outF.close()
+        # print((len(source_word2idx)-count)/len(source_word2idx)*100)
+        
+        # probably not possible with my xml_to_raw implementation, so use code in following else block
+        
+        # train_size = train_data[0]
+        # test_size = test_data[0]
+        # train_polarity_vector = train_data[4]
+        # test_polarity_vector = test_data[4]
     
     ## if data is prepared already, only return some stats
     # else:
