@@ -95,7 +95,7 @@ def lcr_rot(input_fw, input_bw, sen_len_fw, sen_len_bw, target, sen_len_tr, keep
     return prob, att_l, att_r, att_t_l, att_t_r
 
 # TODO: MAKE SURE FUNCTION INPUTS ARE USED INSTEAD OF FLAGS VARIABLES INSIDE THIS FUNCTION
-def main(train_path, test_path, accuracyOnt, test_size, remaining_size, use_eda, eda_type, augmentation_file_path, ct, learning_rate=FLAGS.learning_rate, keep_prob=FLAGS.keep_prob1, momentum=FLAGS.momentum, l2=FLAGS.l2_reg, batch_size=FLAGS.batch_size):
+def main(train_path, test_path, accuracyOnt, test_size, remaining_size, use_eda=False, eda_type=None, augmentation_file_path=None, ct=None, hyperparameter_tuning=False, learning_rate=FLAGS.learning_rate, keep_prob=FLAGS.keep_prob1, momentum=FLAGS.momentum, l2=FLAGS.l2_reg, batch_size=FLAGS.batch_size):
     print_config()
     augmenter = Augmentation(eda_type, need_mixup=True)
     
@@ -312,31 +312,32 @@ def main(train_path, test_path, accuracyOnt, test_size, remaining_size, use_eda,
         # for y1, y2, ws in zip(max_ty, max_py, max_tr):
             # fp.write(str(y1) + ' ' + str(y2) + ' ' + ' '.join([str(w) for w in ws[0]]) + '\n')
         ################################### END OLAF'S WAY OF SAVING RESULTS
-
-        ################################### TOMAS' WAY OF SAVING RESULTS
-        keys_to_save = 'year eda_type EDA_deletion EDA_replacement original_multiplier EDA_insertion EDA_swap EDA_pct backtranslation_langs use_word_mixup mixup_beta mixup_on_augmentations'.split(' ')
-        try:
-            df = pd.read_json(FLAGS.results_file)
-            print('adding outcome to {}'.format(FLAGS.results_file))
-        except ValueError:
-            print('did not find an existing result file, creating a new one...')
-            df = pd.DataFrame([])
-        new_experiment = {}
-        for k, v in sorted(FLAGS.flag_values_dict().items()):
-            if k in keys_to_save:
-                new_experiment[k] = v
-        new_experiment['in_sample'] = max_trainacc
-        new_experiment['out_of_sample'] = max_acc
-        new_experiment['ontology_acc'] = accuracyOnt
-        new_experiment['total_acc'] = max_totalacc
-        new_experiment['at_iteration'] = iteration
-        new_experiment['#of_test'] = cnt
-        new_experiment['#of_train'] = len(tr_x)
-        new_experiment['pre_embed_aug'] = ct
-        new_experiment['post_embed_aug'] = augmenter.counter
-        df = df.append(new_experiment, ignore_index=True)
-        df.to_json(path_or_buf=FLAGS.results_file, orient='columns')
-        ################################### END TOMAS' WAY OF SAVING RESULTS
+        
+        if not hyperparameter_tuning:
+            ################################### TOMAS' WAY OF SAVING RESULTS
+            keys_to_save = 'year eda_type EDA_deletion EDA_replacement original_multiplier EDA_insertion EDA_swap EDA_pct backtranslation_langs use_word_mixup mixup_beta mixup_on_augmentations'.split(' ')
+            try:
+                df = pd.read_json(FLAGS.results_file)
+                print('adding outcome to {}'.format(FLAGS.results_file))
+            except ValueError:
+                print('did not find an existing result file, creating a new one...')
+                df = pd.DataFrame([])
+            new_experiment = {}
+            for k, v in sorted(FLAGS.flag_values_dict().items()):
+                if k in keys_to_save:
+                    new_experiment[k] = v
+            new_experiment['in_sample'] = max_trainacc
+            new_experiment['out_of_sample'] = max_acc
+            new_experiment['ontology_acc'] = accuracyOnt
+            new_experiment['total_acc'] = max_totalacc
+            new_experiment['at_iteration'] = iteration
+            new_experiment['#of_test'] = cnt
+            new_experiment['#of_train'] = len(tr_x)
+            new_experiment['pre_embed_aug'] = ct
+            new_experiment['post_embed_aug'] = augmenter.counter
+            df = df.append(new_experiment, ignore_index=True)
+            df.to_json(path_or_buf=FLAGS.results_file, orient='columns')
+            ################################### END TOMAS' WAY OF SAVING RESULTS
 
         print('Optimization Finished! Max acc={}'.format(max_acc))
 

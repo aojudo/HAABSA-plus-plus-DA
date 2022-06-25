@@ -227,6 +227,9 @@ def eda(sentence, aspect, alpha_sr=0, alpha_ri=0, alpha_rs=0, alpha_rd=0, percen
     if adjusted and alpha_rd != 0: 
         raise Exception('EDA-adjusted does not work with random deletion. Please set FLAGS.EDA_deletion to zero or choose EDA-original.')
     
+    # boolean telling whether random swap has to be done for adjusted EDA
+    rs_adj = False
+    
     # sentence = get_only_chars(sentence)
     words = sentence.split(' ')
     words = [word for word in words if word is not '']
@@ -256,8 +259,10 @@ def eda(sentence, aspect, alpha_sr=0, alpha_ri=0, alpha_rs=0, alpha_rd=0, percen
     
     # random swap
     elif random_number < alpha_sr + alpha_ri + alpha_rs:
-        # don't swap if EDA adjusted is used, then swapping happens inside xml_to_raw as category data is used
-        if not adjusted:
+        # only swap if EDA adjusted is not used, otherwise swapping happens inside xml_to_raw as category data is used
+        if adjusted:
+            rs_adj = True
+        else:
             a_words = random_swap(words, n_rs)
             augmented_sentences.append(' '.join(a_words))
             counter['random swap'] += 1        
@@ -271,7 +276,7 @@ def eda(sentence, aspect, alpha_sr=0, alpha_ri=0, alpha_rs=0, alpha_rd=0, percen
     augmented_sentences = [sentence for sentence in augmented_sentences]
     shuffle(augmented_sentences)
 
-    return augmented_sentences
+    return augmented_sentences, rs_adj
 
 
 ########################################################################

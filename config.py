@@ -27,9 +27,13 @@ FLAGS = tf.app.flags.FLAGS
 # PARAMETERS TO CHANGE FOR DIFFERENT MODEL CONFIGURATIONS #
 ###########################################################
 # flags indicating which data preprocessing steps have to be done (always true when running model for first time
-tf.app.flags.DEFINE_boolean('do_create_raw_files', True, 'whether raw files have to be created, always true when running model for first time')
-tf.app.flags.DEFINE_boolean('do_get_bert', True, 'whether raw files have to be created, always true when running model for first time')
-tf.app.flags.DEFINE_boolean('do_prepare_bert', True, 'whether raw files have to be created, always true when running model for first time')
+tf.app.flags.DEFINE_boolean('do_create_raw_files', False, 'whether raw files have to be created, always true when running model for first time')
+tf.app.flags.DEFINE_boolean('do_get_bert', False, 'whether raw files have to be created, always true when running model for first time')
+tf.app.flags.DEFINE_boolean('do_prepare_bert', False, 'whether raw files have to be created, always true when running model for first time')
+
+# flag indicating which data preprocessing steps have to be done for hyperparameter tuning (always true when tuning for the first time)
+tf.app.flags.DEFINE_boolean('do_create_tuning_files', True, 'whether train and evaluation files have to be created for hyperparameter tuning, always true when tuning for first time')
+
 
 tf.app.flags.DEFINE_integer('year', 2015, 'possible dataset years (2015 and 2016)') # IN CASE OTHER DATASETS HAVE TO BE USED, UPDATE THIS VARIABLE TO DATASET-NAME INSTEAD OF YEAR!
 

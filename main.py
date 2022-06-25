@@ -73,7 +73,7 @@ def main(_):
         accuracyOnt = 0
 
     if runLCRROTALT_v4 == True:
-       _, pred2, fw2, bw2, tl2, tr2 = lcrModelAlt_hierarchical_v4.main(FLAGS.train_path, test, accuracyOnt, test_size, remaining_size, use_eda, eda_type, FLAGS.raw_data_augmented, ct)
+       _, pred2, fw2, bw2, tl2, tr2 = lcrModelAlt_hierarchical_v4.main(train_path=FLAGS.train_path, test_path=test, accuracyOnt=accuracyOnt, test_size=test_size, remaining_size=remaining_size, use_eda=use_eda, eda_type=eda_type, augmentation_file_path=FLAGS.raw_data_augmented, ct=ct)
        tf.reset_default_graph()
 
     print('Finished program succesfully')

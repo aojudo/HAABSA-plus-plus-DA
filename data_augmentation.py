@@ -31,16 +31,16 @@ class Augmentation():
 
     def augment(self, sent, asp):
         ret = []
-        eda_sent, eda_asp = self.eda(sent, asp, adjusted=self.adjusted)
+        eda_sent, eda_asp, rs_adj = self.eda(sent, asp, adjusted=self.adjusted)
         #backtrans_sent = self.backtranslation(sent, asp) if FLAGS.backtranslation_langs != 'None' else []
         #ret.extend(backtrans_sent)
         ret.extend(eda_sent)
-        return ret, asp
+        return ret, asp, rs_adj
 
     def eda(self, sentence, aspect, adjusted=False):
         sent_adjusted = sentence.replace(aspect, '$t$')
         assert sent_adjusted != sentence, 'Something went wrong, the aspect "{}" cannot be found in "{}"'.format(aspect, sentence)
-        augmented_sent = eda(sent_adjusted,
+        augmented_sent, rs_adj = eda(sent_adjusted,
                              aspect,
                              alpha_ri=FLAGS.EDA_insertion,
                              alpha_rs=FLAGS.EDA_swap,
@@ -54,7 +54,7 @@ class Augmentation():
             augmented_with_aspect.append(sent.replace('$t$', aspect))
             assert sent != sent.replace('$t$', aspect), 'Something went wrong, the aspect "{}" cannot be found in "{}"'.format(
                 "$t$", sent)
-        return augmented_with_aspect, aspect
+        return augmented_with_aspect, aspect, rs_adj
 
     def swap_targets(self, sentence1, sentence2):
         if sentence1['aspect'] == sentence2['aspect']:

@@ -185,16 +185,20 @@ def getStatsFromFile(path):
             polarity_vector.append(lines[i + 2].strip().split()[0])
     return size, polarity_vector
 
-def loadHyperData (config,loadData,percentage=0.8):
+def loadHyperData(config,loadData,percentage=0.8):
     FLAGS = config
 
     if loadData:
         '''Splits a file in 2 given the `percentage` to go in the large file.'''
         random.seed(12345)
         
-        # check whether hyperparameter datasets exist, if yes, throw 
+        # check whether hyperparameter datasets exists already, if yes throw exception
         if os.path.exists(FLAGS.hyper_train_path) or os.path.exists(FLAGS.hyper_eval_path):
             raise Exception('One or both of the paths used to store hyperparameter train and test data exist(s) already. Consider removing these files, or make sure not to create new ones.')
+        
+        # check whether train dataset exists, if no throw exception
+        if not os.path.exists(FLAGS.train_path):
+            raise Exception('Training data is not available. Create training data first using main.py.')
         
         with open(FLAGS.train_path, 'r') as fin, \
              open(FLAGS.hyper_train_path, 'w') as foutBig, \

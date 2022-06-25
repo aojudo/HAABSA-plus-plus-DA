@@ -176,9 +176,13 @@ def read_xml(in_file, source_count, source_word2idx, target_count, target_phrase
                     polarity = opinion.get('polarity')
                     if asp != 'NULL':
                         asp_new = re.sub(' +', ' ', asp)
-                        category_sorter[category].append(
-                            {'sentence': sentenceNew, 'aspect': asp_new, 'polarity': polarity})
-                        aug_sent, aug_asp = augmenter.augment(sentenceNew, asp_new)
+                        
+                        # perform EDA, if EDA-adj is used, random swap is not performed but rs_adj will be true
+                        aug_sent, aug_asp, rs_adj = augmenter.augment(sentenceNew, asp_new)
+                        
+                        # if random swap still has to be performed (True when RS is selected dor EDA-adj), add current sentence to list
+                        if rs_adj:
+                            category_sorter[category].append({'sentence': sentenceNew, 'aspect': asp_new, 'polarity': polarity})
                         aug_tok = nltk.word_tokenize(aug_asp)
                         for sp in aug_tok:
                             target_words.extend([''.join(sp).lower()])
@@ -190,6 +194,8 @@ def read_xml(in_file, source_count, source_word2idx, target_count, target_phrase
                                                         'aspect': asp_new,
                                                         'category': category,
                                                         'polarity': polarity})
+        
+        # perform random swap for EDA-adj if necessary
         for category in category_sorter.keys():
             if FLAGS.EDA_swap == 0 or eda_type == 'original':  # when original EDA is used, the swapping happens inside eda.py as no category data is used
                 break

@@ -24,13 +24,14 @@ os.environ['CUDA_VISIBLE_DEVICES'] = FLAGS.gpu_id
 tf.logging.set_verbosity(tf.logging.ERROR)
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' 
 
+# load train and evaluation files for hyperparameter tuning
+train_size, test_size, train_polarity_vector, test_polarity_vector = loadHyperData(FLAGS, FLAGS.do_create_tuning_files)
 
-# in loadHyperData(FLAGS, Boolean), set Boolean=True when hyper train and test data are not generated yet
-train_size, test_size, train_polarity_vector, test_polarity_vector = loadHyperData(FLAGS, True)
-remaining_size = 248
-accuracyOnt = 0.87
+# as no ontology is used, all train data can be used and the ontology's accuracy doesn't matter
+remaining_size = test_size
+accuracyOnt = 0
 
-# Define variabel spaces for hyperopt to run over
+# define variabel spaces for hyperopt to run over (might have to decrease these)
 eval_num = 0
 best_loss = None
 best_hyperparams = None
@@ -52,11 +53,10 @@ def lcr_alt_hierarchical_v4_objective(hyperparams):
     (learning_rate, keep_prob, momentum, l2, batch_size) = hyperparams
     print(hyperparams)
 
-    l, pred1, fw1, bw1, tl1, tr1 = lcrModelAlt_hierarchical_v4.main(FLAGS.hyper_train_path, FLAGS.hyper_eval_path, accuracyOnt, test_size, remaining_size, learning_rate, keep_prob, momentum, l2)
+    l, pred1, fw1, bw1, tl1, tr1 = lcrModelAlt_hierarchical_v4.main(train_path=FLAGS.hyper_train_path, test_path=FLAGS.hyper_eval_path, accuracyOnt=accuracyOnt, test_size=test_size, remaining_size=remaining_size, learning_rate=learning_rate, keep_prob=keep_prob, momentum=momentum, l2=l2)
     tf.reset_default_graph()
 
-    # Save training results to disks with unique filenames
-
+    # save training results to disk with unique filenames
     print(eval_num, l, hyperparams)
 
     if best_loss is None or -l < best_loss:
@@ -74,7 +74,7 @@ def lcr_alt_hierarchical_v4_objective(hyperparams):
     return result
 
 
-# Run a hyperopt trial
+# run a hyperopt trial
 def run_a_trial():
     max_evals = nb_evals = 1
 
@@ -163,6 +163,7 @@ def plot_best_model():
 if not os.path.exists(FLAGS.hyper_results_dir):
     os.makedirs(FLAGS.hyper_results_dir)
 
+# perform hyperparameter optimisation until user manually stops the tuning process
 while True:
     print('Optimizing New Model')
     try:
