@@ -16,18 +16,18 @@ import shutil
 import pickle
 
 
-def loadDataAndEmbeddings(config, loadData, augment_data):
-
+def loadDataAndEmbeddings(config, loadData, use_eda, eda_type):
     FLAGS = config
+    random.seed(12345)
 
-################################ should be changed to: if loadData=true: { if SLAGS.da-method=='da-method': { prepare datasets (xml_to_raw), get BERT embedings (get_bert), prepare BERT embeddings (prepare_bert) } } else: { ...
     if loadData == True:
+        random.seed(12345)
+        
         # locations for raw files
         augment_raw = FLAGS.raw_data_augmented
         train_raw = FLAGS.raw_data_train
         test_raw = FLAGS.raw_data_test
         train_test_raw = FLAGS.raw_data_file
-        
         
         if FLAGS.do_create_raw_files:       
             # check whether files exist already, else create raw data files
@@ -42,7 +42,7 @@ def loadDataAndEmbeddings(config, loadData, augment_data):
             elif os.path.isfile(FLAGS.EDA_counter_path):
                 raise Exception('File '+FLAGS.EDA_counter_path+' already exists. Delete file and run again.')                  
             else:
-                # convert xml data to raw text data. If augment_data==True, also augment data
+                # convert xml data to raw text data. If use_eda==True, also augment data
                 source_count, target_count = [], []
                 source_word2idx, target_phrase2idx = {}, {}
                 print('Reading train data...')
@@ -52,7 +52,8 @@ def loadDataAndEmbeddings(config, loadData, augment_data):
                                           target_count=target_count,
                                           target_phrase2idx=target_phrase2idx,
                                           out_file=train_raw,
-                                          augment_data=augment_data,
+                                          use_eda=use_eda,
+                                          eda_type = eda_type,
                                           augmentation_file=augment_raw)
                 print('Reading test data...')
                 test_data, _ = read_xml(in_file=FLAGS.test_data,
@@ -61,7 +62,8 @@ def loadDataAndEmbeddings(config, loadData, augment_data):
                                         target_count=target_count,
                                         target_phrase2idx=target_phrase2idx,
                                         out_file=test_raw,
-                                        augment_data=False,
+                                        use_eda=False,
+                                        eda_type = None,
                                         augmentation_file=None)
             
             # save amount of augmented sentences for each type of EDA
@@ -85,11 +87,17 @@ def loadDataAndEmbeddings(config, loadData, augment_data):
                 with open(train_raw, 'r+') as file:
                     text = file.read()
                     file.write(text * (FLAGS.original_multiplier-1))
-            
+             
+             
+            # troubleshooting
+            # with open(train_raw, 'r') as in_file, open('train-troubleshoot-'+FLAGS.da_type+'.txt', 'w') as out_file:
+                # out_file.write(in_file.read())
+
+
             # if data augmentation is used, merge augmented raw data into training data
-            if augment_data:
-                with open(augment_raw, 'r') as in_file, open(train_raw, 'w') as out_file:
-                    shutil.copyfileobj(in_file, out_file)
+            if use_eda:
+                with open(augment_raw, 'r') as in_file, open(train_raw, 'a') as out_file:
+                    out_file.write(in_file.read())
                 
             # create file containing both raw train and test data; used for BERT embedings
             with open(train_test_raw, 'wb') as out_file:

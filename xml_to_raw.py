@@ -81,9 +81,9 @@ def _get_data_tuple(sptoks, asp_termIn, label):
     return pos_info, lab
 
 
-def read_xml(in_file, source_count, source_word2idx, target_count, target_phrase2idx, out_file, augment_data, augmentation_file):
+def read_xml(in_file, source_count, source_word2idx, target_count, target_phrase2idx, out_file, use_eda, eda_type, augmentation_file):
     '''
-    Reads data for the 2015 and 2016 restaurant. If augment_data==True, augmented data is added to the
+    Reads data for the 2015 and 2016 restaurant. If use_eda==True, augmented data is added to the
     raw output files.
     
     :param in_file: xml data file location
@@ -92,7 +92,7 @@ def read_xml(in_file, source_count, source_word2idx, target_count, target_phrase
     :param target_count: list that contains list [<pad>, 0] at the first position [empty input] and all the unique words with number of occurences as tuples [empty input]
     :param target_phrase2idx: dictionary with unique words and unique indices [empty input]
     :param out_file: file path for output
-    :param augment_data: boolean representing whether augmented data has to be added to the dataset
+    :param use_eda: boolean representing whether augmented data has to be added to the dataset
     :param augmentation_file: 
     :return: tuple specified in function
     '''
@@ -114,9 +114,9 @@ def read_xml(in_file, source_count, source_word2idx, target_count, target_phrase
     # open file to write raw data to and 
     out_f = open(out_file, 'w')
     
-    if augment_data:
+    if use_eda:
         if os.path.isfile(in_file):
-            augm_f = io.open(augmentation_file, "w", encoding='utf-8') if augment_data else None # changed condition compared to tomas' code
+            augm_f = io.open(augmentation_file, 'w', encoding='utf-8') if use_eda else None # changed condition compared to tomas' code
         else:    
             raise Exception('Trying to augment data, but no file specified to save to. Either specify file or don\'t use data augmentation.')
     else:
@@ -128,7 +128,7 @@ def read_xml(in_file, source_count, source_word2idx, target_count, target_phrase
     source_words, target_words, max_sent_len, max_target_len = [], [], 0, 0
     target_phrases = []
     
-    augmenter = data_augmentation.Augmentation(eda_type=FLAGS.EDA_type)
+    augmenter = data_augmentation.Augmentation(eda_type=eda_type)
     augmented_sentences = []
     
     count_confl = 0
@@ -161,7 +161,7 @@ def read_xml(in_file, source_count, source_word2idx, target_count, target_phrase
 
     counted_cats = Counter(category_counter)
     print('category distribution for {} : {}'.format(out_file, counted_cats))
-    if augment_data:
+    if use_eda:
         category_sorter = {}  # for random swap of targets between sentences
         for i in counted_cats.keys():
             category_sorter[i] = []  # initialize as empty list
@@ -191,7 +191,7 @@ def read_xml(in_file, source_count, source_word2idx, target_count, target_phrase
                                                         'category': category,
                                                         'polarity': polarity})
         for category in category_sorter.keys():
-            if FLAGS.EDA_swap == 0 or FLAGS.EDA_type == 'original':  # we don't swap
+            if FLAGS.EDA_swap == 0 or eda_type == 'original':  # when original EDA is used, the swapping happens inside eda.py as no category data is used
                 break
             sentences_same_cat = category_sorter[category]  # all sentences with the same category
             indices = np.array(range(len(sentences_same_cat)-1))
@@ -265,7 +265,7 @@ def read_xml(in_file, source_count, source_word2idx, target_count, target_phrase
     ####################################### DIFFERENT CODE TOMAS BEGIN
     
     # write augmented sentences
-    if augment_data:
+    if use_eda:
         for aug_sen in augmented_sentences:
             sptoks = nltk.word_tokenize(aug_sen['sentence'])
             if len(sptoks) != 0:
@@ -284,9 +284,9 @@ def read_xml(in_file, source_count, source_word2idx, target_count, target_phrase
                     outputtarget = ' '.join(sp for sp in t_sptoks).lower()
                     outputtext = outputtext.replace(outputtarget, '$T$')
                     augm_f.write(outputtext)
-                    augm_f.write("\n")
+                    augm_f.write('\n')
                     augm_f.write(outputtarget)
-                    augm_f.write("\n")
+                    augm_f.write('\n')
                     pos_info, lab = _get_data_tuple(sptoks, t_sptoks, aug_sen.get('polarity'))
                     pos_info = [(1 - (i / len(idx))) for i in pos_info]
                     source_loc_data.append(pos_info)
@@ -294,14 +294,14 @@ def read_xml(in_file, source_count, source_word2idx, target_count, target_phrase
                     target_data.append(target_phrase2idx[targetdata])
                     target_label.append(lab)
                     augm_f.write(str(lab))
-                    augm_f.write("\n")
+                    augm_f.write('\n')
         augm_f.close()
     
     ####################################### DIFFERENT CODE TOMAS END
     
     print('Read %s aspects from %s' % (len(source_data), in_file))
     print('Conflicts: ' + str(count_confl))
-    print("These are the augmentations that are done for ".format(in_file), augmenter.counter)
+    print('These are the augmentations that are done for '.format(in_file), augmenter.counter)
     ct = augmenter.counter    
     return [source_data, source_loc_data, target_data, target_label, max_sent_len, source_loc_data, max_target_len], ct
 

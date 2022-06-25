@@ -95,9 +95,9 @@ def lcr_rot(input_fw, input_bw, sen_len_fw, sen_len_bw, target, sen_len_tr, keep
     return prob, att_l, att_r, att_t_l, att_t_r
 
 # TODO: MAKE SURE FUNCTION INPUTS ARE USED INSTEAD OF FLAGS VARIABLES INSIDE THIS FUNCTION
-def main(train_path, test_path, accuracyOnt, test_size, remaining_size, augment_data, augmentation_file_path, ct, learning_rate=FLAGS.learning_rate, keep_prob=FLAGS.keep_prob1, momentum=FLAGS.momentum, l2=FLAGS.l2_reg, batch_size=FLAGS.batch_size):
+def main(train_path, test_path, accuracyOnt, test_size, remaining_size, use_eda, eda_type, augmentation_file_path, ct, learning_rate=FLAGS.learning_rate, keep_prob=FLAGS.keep_prob1, momentum=FLAGS.momentum, l2=FLAGS.l2_reg, batch_size=FLAGS.batch_size):
     print_config()
-    augmenter = Augmentation(FLAGS.EDA_type, need_mixup=True)
+    augmenter = Augmentation(eda_type, need_mixup=True)
     
     with tf.device('/GPU:'+FLAGS.gpu_id):
         word_id_mapping, w2v = load_w2v(FLAGS.embedding_path, FLAGS.embedding_dim)
@@ -177,7 +177,7 @@ def main(train_path, test_path, accuracyOnt, test_size, remaining_size, augment_
             type_='TC',
             is_r=is_r,
             target_len=FLAGS.max_target_len,
-            augment_data=augment_data,
+            use_eda=use_eda,
             augmentation_file_path=augmentation_file_path,
             encoding='utf8'
         )
@@ -190,14 +190,14 @@ def main(train_path, test_path, accuracyOnt, test_size, remaining_size, augment_
             type_='TC',
             is_r=is_r,
             target_len=FLAGS.max_target_len,
-            augment_data=False,
+            use_eda=False,
             augmentation_file_path=None,
             encoding='utf8'
         )
         
         #################################### CAN PROBABLY DELETE THIS CODE AS IM NOT USING MIXUP
         # max_records_mixup = len(tr_x) if FLAGS.mixup_on_augmentations > 0 else len_non_augmented
-        # if augment_data and FLAGS.use_word_mixup > 0:
+        # if use_eda and FLAGS.use_word_mixup > 0:
             # print("The amount of records on which mixup is applied: {}".format(max_records_mixup))
             # rand_mixup = np.array(range(max_records_mixup-1))
             # print("applying mixup...")
@@ -314,7 +314,7 @@ def main(train_path, test_path, accuracyOnt, test_size, remaining_size, augment_
         ################################### END OLAF'S WAY OF SAVING RESULTS
 
         ################################### TOMAS' WAY OF SAVING RESULTS
-        keys_to_save = 'year EDA_type EDA_deletion EDA_replacement original_multiplier EDA_insertion EDA_swap EDA_pct backtranslation_langs use_word_mixup mixup_beta mixup_on_augmentations'.split(' ')
+        keys_to_save = 'year eda_type EDA_deletion EDA_replacement original_multiplier EDA_insertion EDA_swap EDA_pct backtranslation_langs use_word_mixup mixup_beta mixup_on_augmentations'.split(' ')
         try:
             df = pd.read_json(FLAGS.results_file)
             print('adding outcome to {}'.format(FLAGS.results_file))

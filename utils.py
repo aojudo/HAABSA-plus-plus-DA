@@ -116,7 +116,7 @@ def change_y_to_onehot(y):
     return np.asarray(onehot, dtype=np.int32)
 
 
-def load_inputs_twitter(input_file, word_id_file, sentence_len, type_='', is_r=True, target_len=10, augment_data=False, augmentation_file_path=None, encoding='utf8'):
+def load_inputs_twitter(input_file, word_id_file, sentence_len, type_='', is_r=True, target_len=10, use_eda=False, augmentation_file_path=None, encoding='utf8'):
     if type(word_id_file) is str:
         word_to_id = load_word_id_mapping(word_id_file)
     else:
@@ -134,7 +134,7 @@ def load_inputs_twitter(input_file, word_id_file, sentence_len, type_='', is_r=T
     
     # I do this part in the loadData.py
     # non_augmented = int(len(lines)/3)
-    # if augment_data:
+    # if use_eda:
         # lines *= FLAGS.original_multiplier
         # aug_lines = io.open(augmentation_file_path, 'r', encoding='utf-8').readlines()
         # lines.extend(aug_lines)

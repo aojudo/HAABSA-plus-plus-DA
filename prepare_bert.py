@@ -7,6 +7,7 @@
 
 # import parameter configuration and data paths
 from config import *
+import os
 
 
 def main():
@@ -258,6 +259,20 @@ def main():
             for k in range(train_lines, len(lines_all_data)):
                 out_test.write(lines_all_data[k])
         print ('Succesfully created BERT test file at '+str(FLAGS.test_path))
+        
+    # remove temporary files
+    for file in [FLAGS.temp_bert_dir + 'BERT_base_' + '_' + FLAGS.da_type + '_' + str(FLAGS.year) + 'embedding.txt',
+                 FLAGS.temp_bert_dir + 'BERT_base_' + '_' + FLAGS.da_type + '_' + str(FLAGS.year) + 'embedding_withCLS_SEP.txt',
+                 FLAGS.temp_bert_dir + 'unique' + '_' + FLAGS.da_type + '_' + str(FLAGS.year) + '_BERT_Data_' + str(filenr) + '.txt',
+                 FLAGS.temp_bert_dir + 'unique' + '_' + FLAGS.da_type + '_' + str(FLAGS.year) + '_BERT_Data_1.txt',
+                 FLAGS.temp_bert_dir + 'unique' + '_' + FLAGS.da_type + '_' + str(FLAGS.year) + '_BERT_Data_2.txt',
+                 FLAGS.temp_bert_dir + 'unique' + '_' + FLAGS.da_type + '_' + str(FLAGS.year) + '_BERT_Data_3.txt',
+                 FLAGS.temp_bert_dir + 'unique' + '_' + FLAGS.da_type + '_' + str(FLAGS.year) + '_BERT_Data_4.txt',
+                 FLAGS.temp_bert_dir + 'unique' + '_' + FLAGS.da_type + '_' + str(FLAGS.year) + '_BERT_Data_5.txt',
+                 FLAGS.temp_bert_dir + 'unique' + '_' + FLAGS.da_type + '_' + str(FLAGS.year) + '_BERT_Data_6.txt',
+                 FLAGS.temp_bert_dir + 'unique' + '_' + FLAGS.da_type + '_' + str(FLAGS.year) + '_BERT_Data_7.txt',
+                 FLAGS.temp_bert_dir + FLAGS.da_type + '_' + str(FLAGS.year) + '_BERT_Data_All.txt']:
+        os.remove(file)
 
 
 if __name__ == '__main__':

@@ -28,19 +28,30 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 # main function
 def main(_):
     loadData        = True # only use raw data files, BERT embeddings and prepared train and test files are not created yet
-    # augment_data    = True # true to augment   
+    # use_eda    = True # true to augment   
     useOntology     = False # when used together with runLCRROTALT_v4, the two-step method is used
     runLCRROTALT_v4 = True # when used together with useOntology, the two-step method is used
     weightanalysis  = False # what is this used for?
-        
-    # if EDA should be used, boolean is set to True (CHANGE THIS UGLY THING BY UPDATING CODE TO READ THE da_type FLAG!)
-    if FLAGS.da_type == 'EDA':
-        augment_data = True
+    
+    # split up DA type flag to determine the exact DA method to use
+    da_methods = FLAGS.da_type.split('-')
+    da_type = da_methods[0]
+    eda_type = None
+    if len(da_methods) > 1:
+        if da_methods[1] == 'original':
+            eda_type = 'original'
+        elif da_methods[1] == 'adjusted':
+            eda_type = 'adjusted'
+        else:
+            raise Exception('The EDA type used in FLAGS.da_type.split does not exist. Please correct flag value.')
+    
+    if da_type == 'EDA':
+        use_eda = True
     else:
-        augment_data = False
+        use_eda = False
     
     # retrieve data and wordembeddings
-    train_size, test_size, train_polarity_vector, test_polarity_vector, ct = loadDataAndEmbeddings(FLAGS, loadData, augment_data)
+    train_size, test_size, train_polarity_vector, test_polarity_vector, ct = loadDataAndEmbeddings(FLAGS, loadData, use_eda, eda_type)
     print(test_size)
 
     # only run ontology if specified
@@ -62,7 +73,7 @@ def main(_):
         accuracyOnt = 0
 
     if runLCRROTALT_v4 == True:
-       _, pred2, fw2, bw2, tl2, tr2 = lcrModelAlt_hierarchical_v4.main(FLAGS.train_path, test, accuracyOnt, test_size, remaining_size, augment_data, FLAGS.raw_data_augmented, ct)
+       _, pred2, fw2, bw2, tl2, tr2 = lcrModelAlt_hierarchical_v4.main(FLAGS.train_path, test, accuracyOnt, test_size, remaining_size, use_eda, eda_type, FLAGS.raw_data_augmented, ct)
        tf.reset_default_graph()
 
     print('Finished program succesfully')

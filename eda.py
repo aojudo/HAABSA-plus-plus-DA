@@ -222,7 +222,11 @@ def add_word(new_words, adjusted=False):
 # main data augmentation function
 ########################################################################
 
-def eda(sentence, aspect, alpha_sr=0, alpha_ri=0, alpha_rs=0, p_rd=0, percentage=.2, adjusted=False, counter=None):
+def eda(sentence, aspect, alpha_sr=0, alpha_ri=0, alpha_rs=0, alpha_rd=0, percentage=.2, adjusted=False, counter=None):
+    # make sure no impossible probabilities are set
+    if adjusted and alpha_rd != 0: 
+        raise Exception('EDA-adjusted does not work with random deletion. Please set FLAGS.EDA_deletion to zero or choose EDA-original.')
+    
     # sentence = get_only_chars(sentence)
     words = sentence.split(' ')
     words = [word for word in words if word is not '']
@@ -234,30 +238,82 @@ def eda(sentence, aspect, alpha_sr=0, alpha_ri=0, alpha_rs=0, p_rd=0, percentage
     n_ri = max(1, int(percentage * num_words))
     n_rs = max(1, int(percentage * num_words))
 
-    # sr
-    for _ in range(alpha_sr):
+    # used to perform each EDA method with the right probability
+    total = alpha_sr + alpha_ri + alpha_rs + alpha_rd
+    random_number = random.uniform(0, total)
+
+    # synonym replacement
+    if random_number < alpha_sr:
         a_words = synonym_replacement(words, aspect, n_sr, adjusted)
         augmented_sentences.append(' '.join(a_words))
-        counter['synonym replacement']+=1
-
-    # ri
-    for _ in range(alpha_ri):
+        counter['synonym replacement'] += 1        
+    
+    # random insertion
+    elif random_number < alpha_sr + alpha_ri:
         a_words = random_insertion(words, n_ri, adjusted)
         augmented_sentences.append(' '.join(a_words))
-        counter['random insertion'] += 1
-    # rs
-    if not adjusted:
-        for _ in range(alpha_rs):
+        counter['random insertion'] += 1        
+    
+    # random swap
+    elif random_number < alpha_sr + alpha_ri + alpha_rs:
+        # don't swap if EDA adjusted is used, then swapping happens inside xml_to_raw as category data is used
+        if not adjusted:
             a_words = random_swap(words, n_rs)
             augmented_sentences.append(' '.join(a_words))
-            counter['random swap'] += 1
-    # rd
-    for _ in range(p_rd):
+            counter['random swap'] += 1        
+    
+    # random deletion
+    else:
         a_words = random_deletion(words, percentage)
         augmented_sentences.append(' '.join(a_words))
-        counter['random deletion'] += 1
+        counter['random deletion'] += 1        
 
     augmented_sentences = [sentence for sentence in augmented_sentences]
     shuffle(augmented_sentences)
 
     return augmented_sentences
+
+
+########################################################################
+# main data augmentation function OLD
+########################################################################
+
+# def eda(sentence, aspect, alpha_sr=0, alpha_ri=0, alpha_rs=0, p_rd=0, percentage=.2, adjusted=False, counter=None):
+    ## sentence = get_only_chars(sentence)
+    # words = sentence.split(' ')
+    # words = [word for word in words if word is not '']
+    # words = [word for word in words if word is not '']
+    # num_words = len(words)
+
+    # augmented_sentences = []
+    # n_sr = max(1, int(percentage * num_words))
+    # n_ri = max(1, int(percentage * num_words))
+    # n_rs = max(1, int(percentage * num_words))
+
+    ## sr
+    # for _ in range(alpha_sr):
+        # a_words = synonym_replacement(words, aspect, n_sr, adjusted)
+        # augmented_sentences.append(' '.join(a_words))
+        # counter['synonym replacement']+=1
+
+    ## ri
+    # for _ in range(alpha_ri):
+        # a_words = random_insertion(words, n_ri, adjusted)
+        # augmented_sentences.append(' '.join(a_words))
+        # counter['random insertion'] += 1
+    ## rs
+    # if not adjusted:
+        # for _ in range(alpha_rs):
+            # a_words = random_swap(words, n_rs)
+            # augmented_sentences.append(' '.join(a_words))
+            # counter['random swap'] += 1
+    ## rd
+    # for _ in range(p_rd):
+        # a_words = random_deletion(words, percentage)
+        # augmented_sentences.append(' '.join(a_words))
+        # counter['random deletion'] += 1
+
+    # augmented_sentences = [sentence for sentence in augmented_sentences]
+    # shuffle(augmented_sentences)
+
+    # return augmented_sentences

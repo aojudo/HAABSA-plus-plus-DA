@@ -26,18 +26,17 @@ FLAGS = tf.app.flags.FLAGS
 ###########################################################
 # PARAMETERS TO CHANGE FOR DIFFERENT MODEL CONFIGURATIONS #
 ###########################################################
-# flags indicating which data preprocessing steps have to be done
-tf.app.flags.DEFINE_boolean('do_create_raw_files', False, 'whether raw files have to be created')
-tf.app.flags.DEFINE_boolean('do_get_bert', False, 'whether raw files have to be created')
-tf.app.flags.DEFINE_boolean('do_prepare_bert', False, 'whether raw files have to be created')
+# flags indicating which data preprocessing steps have to be done (always true when running model for first time
+tf.app.flags.DEFINE_boolean('do_create_raw_files', True, 'whether raw files have to be created, always true when running model for first time')
+tf.app.flags.DEFINE_boolean('do_get_bert', True, 'whether raw files have to be created, always true when running model for first time')
+tf.app.flags.DEFINE_boolean('do_prepare_bert', True, 'whether raw files have to be created, always true when running model for first time')
 
 tf.app.flags.DEFINE_integer('year', 2015, 'possible dataset years (2015 and 2016)') # IN CASE OTHER DATASETS HAVE TO BE USED, UPDATE THIS VARIABLE TO DATASET-NAME INSTEAD OF YEAR!
 
 # data augmentation flags
-tf.app.flags.DEFINE_string('da_type','none','type of data augmentation method used (can be: none, EDA, )')
+tf.app.flags.DEFINE_string('da_type','EDA-adjusted','type of data augmentation method used (can be: none, EDA-original, EDA-adjusted, )')
 
 # EDA specific flags
-tf.app.flags.DEFINE_string('EDA_type', 'adjusted', 'type of eda (original or adjusted)')
 tf.app.flags.DEFINE_integer('EDA_deletion', 0, 'number of deletion augmentations')
 tf.app.flags.DEFINE_integer('EDA_replacement', 1, 'number of replacement augmentations')
 tf.app.flags.DEFINE_integer('EDA_insertion', 1, 'number of insertion augmentations')
@@ -107,7 +106,9 @@ tf.app.flags.DEFINE_string('raw_data_augmented', FLAGS.raw_data_dir + FLAGS.da_t
 # locations for saving BERT embedding related data
 tf.app.flags.DEFINE_string('bert_embedding_path', 'data/program_generated_data/bert_embeddings/bert_base_restaurant_'+FLAGS.da_type + '_' + str(FLAGS.year)+'.txt', 'path to BERT embeddings file')
 tf.app.flags.DEFINE_string('bert_pretrained_path', 'data/external_data/uncased_L-12_H-768_A-12', 'path to pretrained BERT model')
-tf.app.flags.DEFINE_string('temp_bert_dir', 'data/program_generated_data/temp/bert/', 'directory for temporary BERT files')
+tf.app.flags.DEFINE_string('temp_dir', 'data/program_generated_data/temp/', 'directory for temporary files')
+tf.app.flags.DEFINE_string('temp_bert_dir', FLAGS.temp_dir+'/bert/', 'directory for temporary BERT files')
+tf.app.flags.DEFINE_string('temp_eda_dir', FLAGS.temp_dir+'/eda/', 'directory for temporary EDA files')
 tf.app.flags.DEFINE_string('embedding_path', 'data/program_generated_data/'+FLAGS.embedding_type+'_'+str(FLAGS.embedding_dim)+'_' + FLAGS.da_type + '_' + str(FLAGS.year)+'.txt', 'word embeddings from BERT') # two options, think this is this one, otherwise result from prepare_bert
 tf.app.flags.DEFINE_string('train_path', 'data/program_generated_data/' + FLAGS.da_type + '_' + str(FLAGS.year) + '_' + 'traindata' + '_' + FLAGS.embedding_type + '_' + str(FLAGS.embedding_dim) +'.txt', 'path for train sentences with BERT embeddings')
 tf.app.flags.DEFINE_string('test_path', 'data/program_generated_data/' + FLAGS.da_type + '_' + str(FLAGS.year) + '_' + 'testdata' + '_' + FLAGS.embedding_type + '_' + str(FLAGS.embedding_dim) +'.txt', 'path for test sentences with BERT embeddings')
@@ -116,7 +117,7 @@ tf.app.flags.DEFINE_string('hyper_train_path', 'data/program_generated_data/' + 
 tf.app.flags.DEFINE_string('hyper_eval_path', 'data/program_generated_data/' + FLAGS.da_type + '_' + str(FLAGS.year) + '_' + 'hyperevaldata' + '_' + FLAGS.embedding_type + '_' + str(FLAGS.embedding_dim) +'.txt', 'path to evaluation data for hyperparameter tuning')
 
 # locations for saving configuration/result files
-tf.app.flags.DEFINE_string('EDA_counter_path', FLAGS.raw_data_dir + FLAGS.da_type + '_' + 'EDA_counter'+str(FLAGS.year)+'_augm.txt', 'file raw augmented data is written to')
+tf.app.flags.DEFINE_string('EDA_counter_path', FLAGS.temp_eda_dir + FLAGS.da_type + '_eda-counter_'+str(FLAGS.year)+'_augm.txt', 'file raw augmented data is written to')
 tf.app.flags.DEFINE_string('hyper_results_dir', 'hyper_results/'+str(FLAGS.year)+'_'+FLAGS.da_type+'/', 'path to directory containg hyperparameter optimisation results')
 tf.app.flags.DEFINE_string('results_file', 'results/data_augmentation_results.json', 'files where results will be saved in json')
 

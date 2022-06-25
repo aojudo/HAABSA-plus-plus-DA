@@ -1,10 +1,18 @@
-from config import *
 
-file_path = FLAGS.temp_bert_dir + FLAGS.da_type + '_' + str(FLAGS.year) + '_BERT_Data_All.txt'
+str1 = 'hi-sir'
+str2 = 'hi'
 
-with open(file_path, 'r') as file:
-    print('length using splitlines: ' + str(len(file.read().splitlines())))
+
+
+def split_sir(str):
+    str = str.split('-')
+    first = str[0]
+    is_sir = False
+    if len(str) > 1:
+        is_sir = True
     
-with open(file_path, 'r') as file:    
-    print('length using readlines: ' + str(len(file.readlines())))
-    
+    return first, is_sir
+
+
+print(str(split_sir(str1)))
+print(str(split_sir(str2)))

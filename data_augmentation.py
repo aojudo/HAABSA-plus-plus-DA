@@ -32,8 +32,8 @@ class Augmentation():
     def augment(self, sent, asp):
         ret = []
         eda_sent, eda_asp = self.eda(sent, asp, adjusted=self.adjusted)
-        backtrans_sent = self.backtranslation(sent, asp) if FLAGS.backtranslation_langs != 'None' else []
-        ret.extend(backtrans_sent)
+        #backtrans_sent = self.backtranslation(sent, asp) if FLAGS.backtranslation_langs != 'None' else []
+        #ret.extend(backtrans_sent)
         ret.extend(eda_sent)
         return ret, asp
 
@@ -45,7 +45,7 @@ class Augmentation():
                              alpha_ri=FLAGS.EDA_insertion,
                              alpha_rs=FLAGS.EDA_swap,
                              alpha_sr=FLAGS.EDA_replacement,
-                             p_rd=FLAGS.EDA_deletion,
+                             alpha_rd=FLAGS.EDA_deletion,
                              percentage=FLAGS.EDA_pct,
                              adjusted=adjusted,
                              counter=self.counter)
