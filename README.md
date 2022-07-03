@@ -1,4 +1,4 @@
-# HAABSA
+# HAABSA++DA
 Code for HAABSA++DA
 
 All software is written in PYTHON3 (https://www.python.org/) and makes use of the TensorFlow framework (https://www.tensorflow.org/).
@@ -66,4 +66,3 @@ HAABSA code is created by O. Wallaart https://github.com/ofwallaart/HAABSA
 The ++ extensions are created by https://github.com/mtrusca/HAABSA_PLUS_PLUS
 EDA code for HAABSA is created by Liesting et al. (2020) https://github.com/tomasLiesting/HAABSADA.
 Code for locally retrieving BERT embeddings is created by Van Berkum et al. (2021) https://github.com/stefanvanberkum/CD-ABSC
-
