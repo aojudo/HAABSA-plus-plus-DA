@@ -39,7 +39,7 @@ This code is created for use with a CUDA-enabled (NVIDIA) GPU. It might work on 
 4. To create necessary files (BERT embeddings etc) or running the ontology, run `main.py` in CMD. When running a model configuration for the first time, the flags in config.py `do_create_raw_files`, `do_get_bert`, and `do_prepare_bert` should all be `True`. 
 5. For hyperparameter tuning, run `main_hyper.py` in CMD. When running this for the first time, the flag `do_create_tuning_files` should be set to `True`
 
-## Congatulations, you managed to het this code running
+## Congatulations, you managed to get this code running!
 ### I will provide a short descriptions of the files used in the project folder:
 The environment contains the following main files that can be run: main.py, main_hyper.py
 - main.py: program to run single in-sample and out-of-sample valdition runs. Each method can be activated by setting its corresponding boolean to True e.g. to run the ontology method set run_ontology = True.
