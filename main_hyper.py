@@ -1,3 +1,10 @@
+# This file runs the hyperparameter optimisation process fot the 
+# HAABSA-plus-plus-DA model or any of its derivatives.
+# Adapted from O. Wallaart (https://github.com/ofwallaart/HAABSA).
+#
+# https://github.com/aojudo/HAABSA-plus-plus-DA
+
+
 import lcrModelAlt_hierarchical_v4
 
 from OntologyReasoner import OntReasoner
@@ -36,11 +43,11 @@ eval_num = 0
 best_loss = None
 best_hyperparams = None
 hyper_parameter_space = [
-                hp.choice('learning_rate', [0.001,0.005, 0.02, 0.05, 0.06, 0.07, 0.08, 0.09, 0.01, 0.1]),
+                hp.choice('learning_rate', [0.001, 0.01, 0.025, 0.04, 0.05, 0.06, 0.075, 0.1]),
                 hp.quniform('keep_prob', 0.25, 0.75, 0.1),
                 hp.choice('momentum', [0.85, 0.9, 0.95, 0.99]),
                 hp.choice('l2', [0.00001, 0.0001, 0.001, 0.01, 0.1]),
-                hp.choice('batch_size', [16, 32, 64, 128, 250]) # batch size limited by avaliable (GPU) memory, with 4GB the max is ~250
+                hp.choice('batch_size', [8, 16, 32, 64, 128, 250]) # [16, 32, 64, 128, 250]) # batch size limited by avaliable (GPU) memory, with 4GB the max is ~250
             ]
 
 

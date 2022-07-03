@@ -1,4 +1,5 @@
-# Write useful comment
+# This model prepares BERT embeding files and ccomplete test and train files
+# for the HAABSA++ model.
 #
 # https://github.com/aojudo/HAABSA-plus-plus-DA
 #
@@ -235,8 +236,6 @@ def main():
         ## retrive number of lines in training data
         # with open(FLAGS.raw_data_train, 'r') as file:
             # train_lines = len(file.read().splitlines())
-            ## troubleshooting print
-            # print('number of train_lines is: '+str(train_lines))
         
         ## split in train and test file
         # lines_all_data = out_f.readlines()

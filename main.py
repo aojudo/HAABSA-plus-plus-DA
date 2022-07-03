@@ -1,7 +1,8 @@
-# https://github.com/ganeshjawahar/mem_absa
-# https://github.com/Humanity123/MemNet_ABSA
-# https://github.com/pcgreat/mem_absa
-# https://github.com/NUSTM/ABSC
+# This file runs the HAABSA-plus-plus-DA model or any of its derivatives.
+# Adapted from O. Wallaart (https://github.com/ofwallaart/HAABSA).
+#
+# https://github.com/aojudo/HAABSA-plus-plus-DA
+
 
 import tensorflow as tf
 from OntologyReasoner import OntReasoner
@@ -27,31 +28,43 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 # main function
 def main(_):
-    loadData        = True # only use raw data files, BERT embeddings and prepared train and test files are not created yet
-    # use_eda    = True # true to augment   
-    useOntology     = False # when used together with runLCRROTALT_v4, the two-step method is used
-    runLCRROTALT_v4 = True # when used together with useOntology, the two-step method is used
-    weightanalysis  = False # what is this used for?
+    loadData        = True # should only be turned off for testing purposes as 
+                           # it's required for running main.py and main_hyper.py. 
+                           # To configure which data has to be created, use appropriate flags 
+    useOntology     = FLAGS.run_ontology # use appropriate flag value
+    runLCRROTALT_v4 = FLAGS.run_lcr_rot_hop # use appropriate flag value
+    weightanalysis  = False # not used in this research. Not tested
     
-    # split up DA type flag to determine the exact DA method to use
+    # split up DA type flag to determine whether EDA has to be used and if yes, whic version
     da_methods = FLAGS.da_type.split('-')
     da_type = da_methods[0]
     eda_type = None
-    if len(da_methods) > 1:
-        if da_methods[1] == 'original':
-            eda_type = 'original'
-        elif da_methods[1] == 'adjusted':
-            eda_type = 'adjusted'
-        else:
-            raise Exception('The EDA type used in FLAGS.da_type.split does not exist. Please correct flag value.')
-    
     if da_type == 'EDA':
         use_eda = True
+        if len(da_methods) > 1:
+            if da_methods[1] == 'original':
+                eda_type = 'original'
+            elif da_methods[1] == 'adjusted':
+                eda_type = 'adjusted'
+            else:
+                raise Exception('The EDA type used in FLAGS.da_type.split does not exist. Please correct flag value.')        
+        else:
+            raise Exception('The EDA type to use is not specified. Please complete flag value.')        
     else:
         use_eda = False
     
+    # determine whether bert should be used for DA
+    use_bert = False
+    if FLAGS.da_type == 'BERT':
+        use_bert = True
+    
+    # determine whether bert-prepend should be used for DA
+    use_bert_prepend = False
+    if FLAGS.da_type == 'BERT_prepend':
+        use_bert_prepend = True
+    
     # retrieve data and wordembeddings
-    train_size, test_size, train_polarity_vector, test_polarity_vector, ct = loadDataAndEmbeddings(FLAGS, loadData, use_eda, eda_type)
+    train_size, test_size, train_polarity_vector, test_polarity_vector, ct = loadDataAndEmbeddings(FLAGS, loadData, use_eda, eda_type, use_bert, use_bert_prepend)
     print(test_size)
 
     # only run ontology if specified

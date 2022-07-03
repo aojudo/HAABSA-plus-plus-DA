@@ -1,4 +1,5 @@
-# Write useful comment
+# This method loads data from the raw Sem Eval XML files. If required, DA is 
+# performed as well.
 #
 # https://github.com/aojudo/HAABSA-plus-plus-DA
 #
@@ -16,7 +17,7 @@ import shutil
 import pickle
 
 
-def loadDataAndEmbeddings(config, loadData, use_eda, eda_type):
+def loadDataAndEmbeddings(config, loadData, use_eda, eda_type, use_bert, use_bert_prepend):
     FLAGS = config
     random.seed(12345)
 
@@ -66,36 +67,28 @@ def loadDataAndEmbeddings(config, loadData, use_eda, eda_type):
                                         eda_type = None,
                                         augmentation_file=None)
             
-            # save amount of augmented sentences for each type of EDA
+            # save amount of augmented sentences for each type of EDA (zero if no EDA used)
             with open(FLAGS.EDA_counter_path, 'wb') as file:
                 pickle.dump(ct, file)
-            
-            # in Tomas' code, combining original train data with artificial data happens inside load_inputs_twitter
-            # function in utils.py, which is called inside lcrModel....py. Because I need to combine the data before
-            # getting the BERT embeddings, I combine the data here and split it again into train and test data
-            # inside prepare_bert.py
-            
-            # available: raw train, raw augmented and raw test data
-            # required: raw (train + augm) for prepare_bert, raw test for prepare_bert and raw (train + augm + test) for get_bert
-            # how to get the lengths of these files?
-            
-            # make sure to update the splitting point in prepare_bert! 
-            
             
             # if required, multiply the original raw train data size
             if FLAGS.original_multiplier > 1:
                 with open(train_raw, 'r+') as file:
                     text = file.read()
                     file.write(text * (FLAGS.original_multiplier-1))
-             
-             
-            # troubleshooting
-            # with open(train_raw, 'r') as in_file, open('train-troubleshoot-'+FLAGS.da_type+'.txt', 'w') as out_file:
-                # out_file.write(in_file.read())
+            
+            # if BERT is used for DA, create new sentences using BERT
+            if use_bert:
+                import bert_augmentation
+                bert_augmentation.main(train_raw, augment_raw)
+            
+            # if BERT-prepend is used for DA, create new sentences using BERT-prepend
+            if use_bert_prepend:
+                import bert_prepend_augmentation
+                bert_prepend_augmentation.main(train_raw, augment_raw)
 
-
-            # if data augmentation is used, merge augmented raw data into training data
-            if use_eda:
+            # if data augmentation used, merge augmented raw data into training data
+            if use_eda or use_bert or use_bert_prepend:
                 with open(augment_raw, 'r') as in_file, open(train_raw, 'a') as out_file:
                     out_file.write(in_file.read())
                 
@@ -116,45 +109,10 @@ def loadDataAndEmbeddings(config, loadData, use_eda, eda_type):
             get_bert.main()
             print('Finished creating BERT embeddings for test and train data...')
         
-        ## retrive number of aspects in the training data
-        # with open(train_raw, 'r') as file:
-            # lines = file.read().splitlines()
-            # train_aspects = len(lines)/3
-        
         # if required, add BERT embeddings to raw training and text files
         if FLAGS.do_prepare_bert:
             prepare_bert.main()
         
-        # wt = np.random.normal(0, 0.05, [len(source_word2idx), 300])
-        # word_embed = {}
-        # count = 0.0
-        # with open(FLAGS.pretrain_file, 'r',encoding='utf8') as f:
-            # for line in f:
-                # content = line.strip().split()
-                # if content[0] in source_word2idx:
-                    # wt[source_word2idx[content[0]]] = np.array(list(map(float, content[1:])))
-                    # count += 1
-                    
-        # print('Finished created BERT embeddings for test and train data...')
-        
-        ## already happens in my prepare_bert
-        ## print data to txt file
-        # outF= open(FLAGS.embedding_path, 'w')
-        # for i, word in enumerate(source_word2idx):
-            # outF.write(word)
-            # outF.write(' ')
-            # outF.write(' '.join(str(w) for w in wt[i]))
-            # outF.write('\n')
-        # outF.close()
-        # print((len(source_word2idx)-count)/len(source_word2idx)*100)
-        
-        # probably not possible with my xml_to_raw implementation, so use code in following else block
-        
-        # train_size = train_data[0]
-        # test_size = test_data[0]
-        # train_polarity_vector = train_data[4]
-        # test_polarity_vector = test_data[4]
-    
     ## if data is prepared already, only return some stats
     # else:
     train_size, train_polarity_vector = getStatsFromFile(FLAGS.train_path)
@@ -214,23 +172,7 @@ def loadHyperData(config,loadData,percentage=0.8):
             for chunk in chunked[numlines:]:
                 for line in chunk:
                     foutSmall.write(line)
-                    
-        # does the same but for SVM files            
-        # with open(FLAGS.train_svm_path, 'r') as fin, \
-        # open(FLAGS.hyper_svm_train_path, 'w') as foutBig, \
-        # open(FLAGS.hyper_svm_eval_path, 'w') as foutSmall:
-            # lines = fin.readlines()
-
-            # chunked = [lines[i:i+4] for i in range(0, len(lines), 4)]
-            # random.shuffle(chunked)
-            # numlines = int(len(chunked)*percentage)
-            # for chunk in chunked[:numlines]:
-                # for line in chunk:
-                    # foutBig.write(line)
-            # for chunk in chunked[numlines:]:
-                # for line in chunk:
-                    # foutSmall.write(line)
-
+        
     # get statistic properties from txt file
     train_size, train_polarity_vector = getStatsFromFile(FLAGS.hyper_train_path)
     test_size, test_polarity_vector = getStatsFromFile(FLAGS.hyper_eval_path)

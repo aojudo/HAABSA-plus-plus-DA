@@ -12,6 +12,9 @@ data/program_generated_data/**
 !data/program_generated_data/bert_embeddings/
 data/program_generated_data/bert_embeddings/**
 !data/program_generated_data/bert_embeddings/README.md
+!data/program_generated_data/finetuning_data/
+data/program_generated_data/finetuning_data/**
+!data/program_generated_data/finetuning_data/README.md
 !data/program_generated_data/raw_data/
 data/program_generated_data/raw_data/**
 !data/program_generated_data/raw_data/README.md
@@ -20,7 +23,9 @@ data/program_generated_data/temp/**
 !data/program_generated_data/temp/bert/
 data/program_generated_data/temp/bert/**
 !data/program_generated_data/temp/bert/README.md
-
+!data/program_generated_data/temp/eda/
+data/program_generated_data/temp/eda/**
+!data/program_generated_data/temp/eda/README.md
 
 # ignore results files but preserve folder
 results/**
@@ -37,7 +42,7 @@ cross_results_2015/**
 cross_results_2016/**
 hyper_results/**
 summary/**
-
+runs/**
 
 # ignore cache
 __pycache__

@@ -1,3 +1,10 @@
+# This file contains the ontology reasoner used for the Sem Eval restaurant 
+# datasets.
+#
+# Source: https://github.com/KSchouten/Heracles/tree/master/src/main/resources/externalData
+#
+# https://github.com/aojudo/HAABSA-plus-plus-DA
+
 #!/usr/bin/env python
 # encoding: utf-8
 

@@ -1,3 +1,9 @@
+# This file contais the lcr-rot-hop++ model.
+#
+# Adapted from M. Trusca (https://github.com/mtrusca/HAABSA_PLUS_PLUS).
+#
+# https://github.com/aojudo/HAABSA-plus-plus-DA
+
 #!/usr/bin/env python
 # encoding: utf-8
 
@@ -19,6 +25,7 @@ tf.set_random_seed(1)
 def lcr_rot(input_fw, input_bw, sen_len_fw, sen_len_bw, target, sen_len_tr, keep_prob1, keep_prob2, l2, _id='all'):
     print('Hi, I am the LCR-Rot-hop++ model. How are you?')
     cell = tf.contrib.rnn.LSTMCell
+    
     # left hidden
     input_fw = tf.nn.dropout(input_fw, keep_prob=keep_prob1)
     hiddens_l = bi_dynamic_rnn(cell, input_fw, FLAGS.n_hidden, sen_len_fw, FLAGS.max_sentence_len, 'l' + _id, 'all')
@@ -101,7 +108,7 @@ def main(train_path, test_path, accuracyOnt, test_size, remaining_size, use_eda=
     
     with tf.device('/GPU:'+FLAGS.gpu_id):
         word_id_mapping, w2v = load_w2v(FLAGS.embedding_path, FLAGS.embedding_dim)
-        word_embedding = tf.constant(w2v, name='word_embedding')
+        word_embedding = tf.constant(w2v, dtype=tf.float32, name='word_embedding')
 
         keep_prob1 = tf.placeholder(tf.float32)
         keep_prob2 = tf.placeholder(tf.float32)

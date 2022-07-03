@@ -26,39 +26,42 @@ FLAGS = tf.app.flags.FLAGS
 ###########################################################
 # PARAMETERS TO CHANGE FOR DIFFERENT MODEL CONFIGURATIONS #
 ###########################################################
-# flags indicating which data preprocessing steps have to be done (always true when running model for first time
-tf.app.flags.DEFINE_boolean('do_create_raw_files', False, 'whether raw files have to be created, always true when running model for first time')
-tf.app.flags.DEFINE_boolean('do_get_bert', False, 'whether raw files have to be created, always true when running model for first time')
-tf.app.flags.DEFINE_boolean('do_prepare_bert', False, 'whether raw files have to be created, always true when running model for first time')
+# for main.py: which data preprocessing steps to preform (always true when running model for first time) and which models to run
+tf.app.flags.DEFINE_boolean('do_create_raw_files', False, 'whether raw files have to be created, always true when running model for first time') # these three booleans should genreally have the same value (except when troubleshooting)
+tf.app.flags.DEFINE_boolean('do_get_bert', False, 'whether raw files have to be created, always true when running model for first time')        # these three booleans should genreally have the same value (except when troubleshooting)
+tf.app.flags.DEFINE_boolean('do_prepare_bert', False, 'whether raw files have to be created, always true when running model for first time')    # these three booleans should genreally have the same value (except when troubleshooting)
+tf.app.flags.DEFINE_boolean('run_ontology', True, 'whether to run the ontology') # if both ontology and lcr-rot-hop are used: hybrid method
+tf.app.flags.DEFINE_boolean('run_lcr_rot_hop', True, 'whether to run lcr-rot-hop model') # if both ontology and lcr-rot-hop are used: hybrid method
 
-# flag indicating which data preprocessing steps have to be done for hyperparameter tuning (always true when tuning for the first time)
-tf.app.flags.DEFINE_boolean('do_create_tuning_files', True, 'whether train and evaluation files have to be created for hyperparameter tuning, always true when tuning for first time')
+# for main_hyper.py: whether hyperparameter tuning train/eval data has to be created (always true when tuning model for the first time)
+tf.app.flags.DEFINE_boolean('do_create_tuning_files', False, 'whether train and evaluation files have to be created for hyperparameter tuning, always true when tuning for first time')
 
+# general model selection variables
+tf.app.flags.DEFINE_integer('year', 2016, 'possible dataset years (can be: 2015, 2016)')
+tf.app.flags.DEFINE_string('da_type','EDA-original','type of data augmentation method (can be: none, EDA-original, BERT, BERT_prepend)') # EDA-adjusted is also implemented, but not considered in this research 
 
-tf.app.flags.DEFINE_integer('year', 2015, 'possible dataset years (2015 and 2016)') # IN CASE OTHER DATASETS HAVE TO BE USED, UPDATE THIS VARIABLE TO DATASET-NAME INSTEAD OF YEAR!
+# BERT specific flags
+tf.app.flags.DEFINE_float('BERT_pct', .2, 'percentage of words affected by BERT augmentation') # fixed to 0.2 in this research
 
-# data augmentation flags
-tf.app.flags.DEFINE_string('da_type','EDA-adjusted','type of data augmentation method used (can be: none, EDA-original, EDA-adjusted, )')
-
-# EDA specific flags
-tf.app.flags.DEFINE_integer('EDA_deletion', 0, 'number of deletion augmentations')
+# EDA specific flags (EDA-original: del=1, rep=1, ins=1, sw=1 / EDA-adjusted: del=0, rep=1, ins=1, sw=1)
+tf.app.flags.DEFINE_integer('EDA_deletion', 1, 'number of deletion augmentations') # set to zero when using EDA-adjusted
 tf.app.flags.DEFINE_integer('EDA_replacement', 1, 'number of replacement augmentations')
 tf.app.flags.DEFINE_integer('EDA_insertion', 1, 'number of insertion augmentations')
 tf.app.flags.DEFINE_integer('EDA_swap', 1, 'number of swap augmentations') # in adjusted mode, higher number means more swaps within the same category
-tf.app.flags.DEFINE_float('EDA_pct', .2, 'percentage of words affected by augmentation') # in adjusted mode EDA_swap not affected
-tf.app.flags.DEFINE_integer('original_multiplier', 1, 'the amount of times the original data should be used in the training data (integer only)')
+tf.app.flags.DEFINE_float('EDA_pct', .2, 'percentage of words affected by augmentation') # fixed to 0.2 in this research / in adjusted mode EDA_swap not affected
+tf.app.flags.DEFINE_integer('original_multiplier', 1, 'original data multiplier for training data (integer only)') # fixed to 1 in this research
 
 
 ################################################################################################################################
 # HYPERPARAMETERS TUNED IN THIS RESEARCH (FOR REPRODUCING RESEARCH RESULTS, USE THE HYPERPARAMETERS AS SPECIFIED IN README.MD) #
 ################################################################################################################################
 # order of hyperparameters: learning_rate, keep_prob, momentum, l2, batch_size
-tf.app.flags.DEFINE_float('learning_rate', 0.06, 'learning rate')
-tf.app.flags.DEFINE_float('keep_prob1', 0.5, 'dropout keep prob for the hidden layers of the lcr-rot mode (tuned)')
-tf.app.flags.DEFINE_float('momentum', 0.85, 'momentum')
-tf.app.flags.DEFINE_float('l2_reg', 0.00001, 'l2 regularization')
-tf.app.flags.DEFINE_integer('batch_size', 250, 'number of example per batch') # batch size limited by avaliable (GPU) memory, with 4GB the max is ~250
-# default hyperparameters: learning_rate=0.09, keep_prob=0.3, momentum=0.85, l2=0.00001
+tf.app.flags.DEFINE_float('learning_rate', 0.025, 'learning rate')
+tf.app.flags.DEFINE_float('keep_prob1', 0.6, 'dropout keep prob for the hidden layers of the lcr-rot mode (tuned)')
+tf.app.flags.DEFINE_float('momentum', 0.9, 'momentum')
+tf.app.flags.DEFINE_float('l2_reg', 0.01, 'l2 regularization')
+tf.app.flags.DEFINE_integer('batch_size', 10, 'number of example per batch') # batch size limited by avaliable (GPU) memory. reduce when getting OOM errors from tf
+# default hyperparameters (M. Trusca): learning_rate=0.09, keep_prob=0.3, momentum=0.85, l2=0.00001
 
 
 #############################################
@@ -96,9 +99,9 @@ tf.app.flags.DEFINE_string('method', 'AE', 'model type: AE, AT or AEAT')
 ###################################################################################################################
 # FILE LOCATIONS IN PROJECT FOLDER (NOT ADVISED TO CHANGE BECAUSE SOME CODE MIGHT DEPEND ON EXACT FILE LOCATIONS) #
 ###################################################################################################################
-# original XML data, ###### (SMALLER) DEVELOPMENT TRAIN AND TEST FILES, MAKE SURE TO CHANGE BACK TO ORIGINAL ONES
-tf.app.flags.DEFINE_string('train_data', 'data/external_data/DEV_restaurant_train_2015.xml', 'DEVELOPMENT xml train data path')
-tf.app.flags.DEFINE_string('test_data', 'data/external_data/DEV_restaurant_test_2015.xml', 'DEVELOPMENT xml test data path')
+# original XML data
+tf.app.flags.DEFINE_string('train_data', 'data/external_data/restaurant_train_' + str(FLAGS.year) +'.xml', 'DEVELOPMENT xml train data path')
+tf.app.flags.DEFINE_string('test_data', 'data/external_data/restaurant_test_' + str(FLAGS.year) +'.xml',  'DEVELOPMENT xml test data path')
 
 # locations for saving raw data
 tf.app.flags.DEFINE_string('raw_data_dir', 'data/program_generated_data/raw_data/', 'folder contataining raw data')
@@ -120,14 +123,15 @@ tf.app.flags.DEFINE_string('remaining_test_path', 'data/program_generated_data/'
 tf.app.flags.DEFINE_string('hyper_train_path', 'data/program_generated_data/' + FLAGS.da_type + '_' + str(FLAGS.year) + '_' + 'hypertraindata' + '_' + FLAGS.embedding_type + '_' + str(FLAGS.embedding_dim) +'.txt', 'path to traning data for hyperparameter tuning')
 tf.app.flags.DEFINE_string('hyper_eval_path', 'data/program_generated_data/' + FLAGS.da_type + '_' + str(FLAGS.year) + '_' + 'hyperevaldata' + '_' + FLAGS.embedding_type + '_' + str(FLAGS.embedding_dim) +'.txt', 'path to evaluation data for hyperparameter tuning')
 
+# locations for saving BERT finetuning data/external_data
+tf.app.flags.DEFINE_string('finetune_train_file', 'data/program_generated_data/finetuning_data/' + FLAGS.da_type + '_' + str(FLAGS.year)+'_finetune_train.txt', 'file finetuning train data is written to')
+tf.app.flags.DEFINE_string('finetune_eval_file', 'data/program_generated_data/finetuning_data/' + FLAGS.da_type + '_' + str(FLAGS.year)+'_finetune_eval.txt', 'file finetuning evaluation data is written to')
+tf.app.flags.DEFINE_string('finetune_model_dir', 'data/program_generated_data/finetuning_data/' + FLAGS.da_type + '_' + str(FLAGS.year)+'_finetune_model/', 'folder containing BERT model after finetuning')
+
 # locations for saving configuration/result files
 tf.app.flags.DEFINE_string('EDA_counter_path', FLAGS.temp_eda_dir + FLAGS.da_type + '_eda-counter_'+str(FLAGS.year)+'_augm.txt', 'file raw augmented data is written to')
 tf.app.flags.DEFINE_string('hyper_results_dir', 'hyper_results/'+str(FLAGS.year)+'_'+FLAGS.da_type+'/', 'path to directory containg hyperparameter optimisation results')
 tf.app.flags.DEFINE_string('results_file', 'results/data_augmentation_results.json', 'files where results will be saved in json')
-
-
-
-### INCLUDE DA_TYPE IN PATH AND FILE NAMES!
 
 # not used in code?
 tf.app.flags.DEFINE_string('prob_file', 'results.txt', 'prob')
